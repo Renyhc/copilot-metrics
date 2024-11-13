@@ -9,11 +9,16 @@ This API provides endpoints to retrieve GitHub Copilot usage metrics at differen
 ```bash
 npm install
 ```
-3. Configure your environment variables in config/config.js:
-   - ENTERPRISE
-   - ORG
-   - TEAM_SLUG
-   - API_VERSION
+3. Create a `.env` file in the root directory using `.env.example` as a template:
+```bash
+cp .env.example .env
+```
+Then edit `.env` with your values:
+   - GITHUB_TOKEN: Your GitHub personal access token
+   - ENTERPRISE: Your enterprise name
+   - ORG: Your organization name
+   - TEAM_SLUG: Your team slug
+   - API_VERSION: GitHub API version (defaults to 2022-11-28)
 
 4. Start the server:
 ```bash
