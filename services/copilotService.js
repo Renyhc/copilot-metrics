@@ -5,7 +5,8 @@ const chartService = require('./chartService');
 const exportService = require('./exportService');
 
 const octokit = new Octokit({
-    auth: config.GITHUB_TOKEN
+    auth: config.GITHUB_TOKEN,
+    url : config.GITHUB_API_URL
 });
 
 class CopilotService {
