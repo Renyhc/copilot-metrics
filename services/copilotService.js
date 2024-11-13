@@ -1,6 +1,7 @@
 const { Octokit } = require('@octokit/core');
 const config = require('../config/config');
 const metricsTransformService = require('./metricsTransformService');
+const chartService = require('./chartService');
 
 const octokit = new Octokit({
     auth: config.GITHUB_TOKEN
@@ -16,10 +17,16 @@ class CopilotService {
                 }
             });
             const rawData = response.data;
+            const transformedData = metricsTransformService.transformMetricsForChart(rawData);
+            const chartResult = await chartService.generateLineChart(transformedData, {
+                title: 'Métricas de Copilot - Nivel Empresa'
+            });
+            
             return {
                 raw: rawData,
-                chartData: metricsTransformService.transformMetricsForChart(rawData),
-                summary: metricsTransformService.getMetricsSummary(rawData)
+                chartData: transformedData,
+                summary: metricsTransformService.getMetricsSummary(rawData),
+                chart: chartResult
             };
         } catch (error) {
             throw new Error(`Error fetching enterprise metrics: ${error.message}`);

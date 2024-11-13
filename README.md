@@ -57,7 +57,7 @@ Returns Copilot metrics for a specific team within the organization.
 
 ## Response Format
 
-All endpoints return JSON responses with the following structure:
+All endpoints return JSON responses with the following structure. Additionally, each request generates and saves a PNG chart image in the `exports` directory.
 
 ```json
 {
@@ -99,11 +99,16 @@ All endpoints return JSON responses with the following structure:
             "trend": "Ligero incremento"
         },
         "lastUpdate": "2024-01-15"
+    },
+    "chart": {
+        "success": true,
+        "filePath": "exports/copilot-metrics-2024-01-15T12-30-45.png",
+        "fileName": "copilot-metrics-2024-01-15T12-30-45.png"
     }
 }
 ```
 
-The `chartData` object is formatted for use with chart libraries like Chart.js.
+The `chartData` object is formatted for use with chart libraries like Chart.js. The API automatically generates and saves chart images in PNG format in the `exports` directory.
 
 ## Error Handling
 
