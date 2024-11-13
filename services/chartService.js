@@ -6,9 +6,83 @@ const path = require('path');
 class ChartService {
     async generateLineChart(chartData, options = {}) {
         try {
-            // Crear canvas
-            const width = options.width || 800;
-            const height = options.height || 400;
+            return await this._generateChart('line', chartData, options);
+        } catch (error) {
+            throw new Error(`Error generando gráfico de líneas: ${error.message}`);
+        }
+    }
+
+    async generateAcceptanceRateChart(metricsData) {
+        try {
+            const chartData = {
+                labels: metricsData.labels,
+                datasets: [{
+                    label: 'Tasa de Aceptación (%)',
+                    data: metricsData.datasets[0].data.map((accepted, i) => 
+                        (accepted / metricsData.datasets[1].data[i] * 100).toFixed(2)
+                    ),
+                    borderColor: '#4BC0C0',
+                    fill: false
+                }]
+            };
+            return await this._generateChart('line', chartData, {
+                title: 'Tasa de Aceptación de Sugerencias',
+                yAxisLabel: 'Porcentaje (%)'
+            });
+        } catch (error) {
+            throw new Error(`Error generando gráfico de tasa de aceptación: ${error.message}`);
+        }
+    }
+
+    async generateUsersBarChart(metricsData) {
+        try {
+            const chartData = {
+                labels: ['Usuarios Activos', 'Usuarios Comprometidos'],
+                datasets: [{
+                    label: 'Número de Usuarios',
+                    data: [
+                        metricsData.overall.activeUsers,
+                        metricsData.overall.engagedUsers
+                    ],
+                    backgroundColor: ['#36A2EB', '#FF6384']
+                }]
+            };
+            return await this._generateChart('bar', chartData, {
+                title: 'Distribución de Usuarios',
+                indexAxis: 'y'
+            });
+        } catch (error) {
+            throw new Error(`Error generando gráfico de usuarios: ${error.message}`);
+        }
+    }
+
+    async generateWeeklyTrendsChart(metricsData) {
+        try {
+            const chartData = {
+                labels: ['Sugerencias Aceptadas', 'Sugerencias Totales', 'Tasa de Aceptación'],
+                datasets: [{
+                    label: 'Tendencia Semanal (%)',
+                    data: [
+                        metricsData.trends.acceptedSuggestions,
+                        metricsData.trends.totalSuggestions,
+                        metricsData.trends.acceptanceRate
+                    ],
+                    backgroundColor: ['#36A2EB', '#FF6384', '#4BC0C0']
+                }]
+            };
+            return await this._generateChart('bar', chartData, {
+                title: 'Tendencias Semanales',
+                yAxisLabel: 'Cambio Porcentual (%)'
+            });
+        } catch (error) {
+            throw new Error(`Error generando gráfico de tendencias: ${error.message}`);
+        }
+    }
+
+    async _generateChart(type, chartData, options = {}) {
+        // Crear canvas
+        const width = options.width || 800;
+        const height = options.height || 400;
             const canvas = createCanvas(width, height);
             const ctx = canvas.getContext('2d');
 
@@ -19,9 +93,14 @@ class ChartService {
                 options: {
                     responsive: false,
                     animation: false,
+                    indexAxis: options.indexAxis || 'x',
                     scales: {
                         y: {
-                            beginAtZero: true
+                            beginAtZero: true,
+                            title: {
+                                display: !!options.yAxisLabel,
+                                text: options.yAxisLabel || ''
+                            }
                         }
                     },
                     plugins: {
