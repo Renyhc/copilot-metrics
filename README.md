@@ -55,9 +55,21 @@ GET /orgs/{org}/team/{team_slug}/copilot/metrics
 ```
 Returns Copilot metrics for a specific team within the organization.
 
+## Export Format
+
+All endpoints automatically export their data in two formats in the `exports` directory:
+
+1. PNG chart images with format: `copilot-metrics-YYYY-MM-DDTHH-mm-ss.png`
+2. JSON data files with format: `copilot-metrics-[type]-YYYY-MM-DD-YYYY-MM-DDTHH-mm-ss.json`
+
+Where:
+- `[type]` is one of: enterprise, enterprise-team, organization, organization-team
+- The date (YYYY-MM-DD) helps with file organization
+- The timestamp (HH-mm-ss) ensures unique filenames
+
 ## Response Format
 
-All endpoints return JSON responses with the following structure. Additionally, each request generates and saves a PNG chart image in the `exports` directory.
+All endpoints return JSON responses with the following structure:
 
 ```json
 {

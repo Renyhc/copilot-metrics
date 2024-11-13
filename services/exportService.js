@@ -10,9 +10,11 @@ class ExportService {
                 fs.mkdirSync(exportDir, { recursive: true });
             }
 
-            // Generar nombre de archivo único
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const fileName = `copilot-metrics-${type}-${timestamp}.json`;
+            // Generar nombre de archivo único con fecha
+            const date = new Date();
+            const formattedDate = date.toISOString().split('T')[0];
+            const timestamp = date.toISOString().replace(/[:.]/g, '-');
+            const fileName = `copilot-metrics-${type}-${formattedDate}-${timestamp}.json`;
             const filePath = path.join(exportDir, fileName);
 
             // Exportar los datos como JSON
