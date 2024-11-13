@@ -41,8 +41,8 @@ class ChartService {
                 datasets: [{
                     label: 'Número de Usuarios',
                     data: [
-                        metricsData.overall.activeUsers,
-                        metricsData.overall.engagedUsers
+                        metricsData.active_users || 0,
+                        metricsData.total_engaged_users || 0
                     ],
                     backgroundColor: ['#36A2EB', '#FF6384']
                 }]
