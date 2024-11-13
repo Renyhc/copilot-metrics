@@ -21,11 +21,6 @@ class MetricsTransformService {
                 ]
             };
 
-            // Verificar que metricsData es un array
-            if (!Array.isArray(metricsData)) {
-                throw new Error('Los datos de métricas deben ser un array');
-            }
-
             // Ordenar los datos por fecha
             const sortedData = [...metricsData].sort((a, b) => 
                 new Date(a.date) - new Date(b.date)
@@ -49,44 +44,44 @@ class MetricsTransformService {
     getMetricsSummary(metricsData) {
         try {
             // Calcular tendencias y promedios
-            const dailyMetrics = metricsData.daily_metrics || [];
+            const dailyMetrics = metricsData || [];
             const lastWeekMetrics = dailyMetrics.slice(-7);
             
             // Calcular promedios de la última semana
             const weeklyAvg = {
-                acceptedSuggestions: this._calculateAverage(lastWeekMetrics.map(m => m.accepted_suggestions)),
-                totalSuggestions: this._calculateAverage(lastWeekMetrics.map(m => m.total_suggestions)),
+                acceptedSuggestions: this._calculateAverage(lastWeekMetrics.map(m => m.total_code_acceptances)),
+                totalSuggestions: this._calculateAverage(lastWeekMetrics.map(m => m.total_code_suggestions)),
             };
 
             // Calcular tendencias (comparación con semana anterior)
             const previousWeekMetrics = dailyMetrics.slice(-14, -7);
             const trends = {
                 acceptedSuggestions: this._calculateTrend(
-                    this._calculateAverage(previousWeekMetrics.map(m => m.accepted_suggestions)),
-                    weeklyAvg.acceptedSuggestions
+                    this._calculateAverage(previousWeekMetrics.map(m => m.total_code_acceptances)),
+                    weeklyAvg.total_code_acceptances
                 ),
                 totalSuggestions: this._calculateTrend(
-                    this._calculateAverage(previousWeekMetrics.map(m => m.total_suggestions)),
-                    weeklyAvg.totalSuggestions
+                    this._calculateAverage(previousWeekMetrics.map(m => m.total_code_suggestions)),
+                    weeklyAvg.total_code_suggestions
                 )
             };
 
             return {
                 overall: {
-                    totalAcceptedSuggestions: metricsData.total_accepted_suggestions,
-                    totalSuggestions: metricsData.total_suggestions,
-                    acceptanceRate: (metricsData.total_accepted_suggestions / metricsData.total_suggestions * 100).toFixed(2),
-                    activeUsers: metricsData.active_users
+                    totalAcceptedSuggestions: metricsData.total_code_acceptances,
+                    totalSuggestions: metricsData.total_code_suggestions,
+                    acceptanceRate: (metricsData.total_code_acceptances / metricsData.total_code_suggestions * 100).toFixed(2),
+                    activeUsers: metricsData.total_active_users
                 },
                 weeklyAverages: {
-                    acceptedSuggestions: weeklyAvg.acceptedSuggestions.toFixed(2),
-                    totalSuggestions: weeklyAvg.totalSuggestions.toFixed(2),
-                    acceptanceRate: ((weeklyAvg.acceptedSuggestions / weeklyAvg.totalSuggestions) * 100).toFixed(2)
+                    acceptedSuggestions: weeklyAvg.total_code_acceptances.toFixed(2),
+                    totalSuggestions: weeklyAvg.total_code_suggestions.toFixed(2),
+                    acceptanceRate: ((weeklyAvg.total_code_acceptances / weeklyAvg.total_code_suggestions) * 100).toFixed(2)
                 },
                 trends: {
-                    acceptedSuggestions: trends.acceptedSuggestions,
-                    totalSuggestions: trends.totalSuggestions,
-                    trend: this._getTrendDescription(trends.acceptedSuggestions)
+                    acceptedSuggestions: trends.total_code_acceptances,
+                    totalSuggestions: trends.total_code_suggestions,
+                    trend: this._getTrendDescription(trends.total_code_acceptances)
                 },
                 lastUpdate: dailyMetrics[dailyMetrics.length - 1]?.date || 'No data'
             };
