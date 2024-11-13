@@ -88,7 +88,7 @@ class ChartService {
 
             // Configurar el gráfico
             const chart = new Chart(ctx, {
-                type: 'line',
+                type: type,
                 data: chartData,
                 options: {
                     responsive: false,

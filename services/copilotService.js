@@ -98,20 +98,14 @@ class CopilotService {
             });
             const rawData = response.data;
             const transformedData = metricsTransformService.transformMetricsForChart(rawData);
-            const lineChartResult = await chartService.generateLineChart(transformedData, {
-                title: 'Métricas de Copilot - Nivel Organización'
-            });
-            
             // Generar múltiples gráficos
-            const acceptanceChartResult = await chartService.generateAcceptanceRateChart(transformedData);
-            const usersChartResult = await chartService.generateUsersBarChart(rawData);
-            const trendsChartResult = await chartService.generateWeeklyTrendsChart(rawData);
-
             const chartResults = {
-                lineChart: lineChartResult,
-                acceptanceChart: acceptanceChartResult,
-                usersChart: usersChartResult,
-                trendsChart: trendsChartResult
+                lineChart: await chartService.generateLineChart(transformedData, {
+                    title: 'Métricas de Copilot - Nivel Organización'
+                }),
+                acceptanceChart: await chartService.generateAcceptanceRateChart(transformedData),
+                usersChart: await chartService.generateUsersBarChart(rawData),
+                trendsChart: await chartService.generateWeeklyTrendsChart(rawData)
             };
             
             // Exportar datos a JSON
@@ -125,7 +119,7 @@ class CopilotService {
                 raw: rawData,
                 chartData: transformedData,
                 summary: metricsTransformService.getMetricsSummary(rawData),
-                chart: chartResults,
+                charts: chartResults,
                 export: jsonExport
             };
         } catch (error) {
