@@ -31,19 +31,6 @@ The API will be available at: http://localhost:3000
 
 All endpoints are prefixed with the base URL: `http://localhost:3000`
 
-Example using curl:
-```bash
-# Get enterprise metrics
-curl -X GET "http://localhost:3000/enterprise/metrics" \
-     -H "Authorization: Bearer your-github-token" \
-     -H "Accept: application/json"
-
-# Get organization metrics
-curl -X GET "http://localhost:3000/org/metrics" \
-     -H "Authorization: Bearer your-github-token" \
-     -H "Accept: application/json"
-```
-
 ### Enterprise Level Metrics
 
 #### Get Enterprise Metrics
