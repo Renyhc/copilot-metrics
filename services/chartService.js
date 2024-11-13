@@ -1,4 +1,5 @@
 const { Chart } = require('chart.js/auto');
+const metricsTransformService = require('./metricsTransformService');
 const { createCanvas } = require('canvas');
 const fs = require('fs');
 const path = require('path');
@@ -58,17 +59,35 @@ class ChartService {
 
     async generateWeeklyTrendsChart(metricsData) {
         try {
+            const summary = metricsTransformService.getMetricsSummary(metricsData);
             const chartData = {
-                labels: ['Sugerencias Aceptadas', 'Sugerencias Totales', 'Tasa de Aceptación'],
-                datasets: [{
-                    label: 'Tendencia Semanal (%)',
-                    data: [
-                        metricsData.trends.acceptedSuggestions,
-                        metricsData.trends.totalSuggestions,
-                        metricsData.trends.acceptanceRate
-                    ],
-                    backgroundColor: ['#36A2EB', '#FF6384', '#4BC0C0']
-                }]
+                labels: ['Promedio Semanal', 'Tendencia'],
+                datasets: [
+                    {
+                        label: 'Sugerencias Aceptadas',
+                        data: [
+                            parseFloat(summary.weeklyAverages.acceptedSuggestions),
+                            summary.trends.acceptedSuggestions
+                        ],
+                        backgroundColor: '#36A2EB'
+                    },
+                    {
+                        label: 'Sugerencias Totales',
+                        data: [
+                            parseFloat(summary.weeklyAverages.totalSuggestions),
+                            summary.trends.totalSuggestions
+                        ],
+                        backgroundColor: '#FF6384'
+                    },
+                    {
+                        label: 'Tasa de Aceptación (%)',
+                        data: [
+                            parseFloat(summary.weeklyAverages.acceptanceRate),
+                            parseFloat(summary.overall.acceptanceRate)
+                        ],
+                        backgroundColor: '#4BC0C0'
+                    }
+                ]
             };
             return await this._generateChart('bar', chartData, {
                 title: 'Tendencias Semanales',
