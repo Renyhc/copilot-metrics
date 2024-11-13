@@ -3,18 +3,17 @@ const moment = require('moment');
 class MetricsTransformService {
     transformMetricsForChart(metricsData) {
         try {
-            // Asumiendo que metricsData tiene una estructura con datos diarios
             const transformedData = {
                 labels: [],
                 datasets: [
                     {
-                        label: 'Sugerencias Aceptadas',
+                        label: 'Usuarios Activos',
                         data: [],
                         borderColor: '#36A2EB',
                         fill: false
                     },
                     {
-                        label: 'Sugerencias Totales',
+                        label: 'Usuarios Comprometidos',
                         data: [],
                         borderColor: '#FF6384',
                         fill: false
@@ -22,16 +21,23 @@ class MetricsTransformService {
                 ]
             };
 
+            // Verificar que metricsData es un array
+            if (!Array.isArray(metricsData)) {
+                throw new Error('Los datos de métricas deben ser un array');
+            }
+
             // Ordenar los datos por fecha
-            const sortedData = metricsData.daily_metrics.sort((a, b) => 
-                moment(a.date).diff(moment(b.date))
+            const sortedData = [...metricsData].sort((a, b) => 
+                new Date(a.date) - new Date(b.date)
             );
 
             // Transformar los datos
             sortedData.forEach(metric => {
-                transformedData.labels.push(moment(metric.date).format('DD/MM/YYYY'));
-                transformedData.datasets[0].data.push(metric.accepted_suggestions);
-                transformedData.datasets[1].data.push(metric.total_suggestions);
+                if (metric.date) {
+                    transformedData.labels.push(moment(metric.date).format('DD/MM/YYYY'));
+                    transformedData.datasets[0].data.push(metric.total_active_users || 0);
+                    transformedData.datasets[1].data.push(metric.total_engaged_users || 0);
+                }
             });
 
             return transformedData;
