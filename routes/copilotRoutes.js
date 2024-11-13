@@ -2,6 +2,36 @@ const express = require('express');
 const router = express.Router();
 const copilotService = require('../services/copilotService');
 
+/**
+ * @swagger
+ * /metrics/refresh:
+ *   get:
+ *     summary: Obtener y exportar métricas actualizadas de GitHub Copilot
+ *     tags: [Metrics]
+ *     description: Obtiene las métricas más recientes de GitHub Copilot, genera gráficos y exporta los datos
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Métricas actualizadas obtenidas y exportadas exitosamente
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MetricsResponse'
+ *       401:
+ *         description: No autorizado
+ *       500:
+ *         description: Error del servidor
+ */
+router.get('/metrics/refresh', async (req, res) => {
+    try {
+        const metrics = await copilotService.getEnterpriseMetrics();
+        res.json(metrics);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Enterprise metrics
 router.get('/enterprise/metrics', async (req, res) => {
     try {

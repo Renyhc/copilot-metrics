@@ -49,6 +49,21 @@ The Swagger interface allows you to:
 
 All endpoints are prefixed with the base URL: `http://localhost:3000`
 
+### Metrics Refresh
+
+#### Get Updated Metrics
+```http
+GET /metrics/refresh
+```
+Fetches the most recent Copilot metrics, generates charts, and exports the data to both PNG and JSON files. This endpoint provides a convenient way to get fresh metrics data and automatically generate all associated files.
+
+Returns the same structure as other metrics endpoints, including:
+- Raw metrics data
+- Formatted chart data
+- Statistical summary
+- Generated chart information
+- Export file information
+
 ### Enterprise Level Metrics
 
 #### Get Enterprise Metrics
