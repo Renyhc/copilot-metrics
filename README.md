@@ -31,29 +31,62 @@ npm start
 
 #### Get Enterprise Metrics
 ```http
-GET /enterprises/{enterprise}/copilot/metrics
+GET /api/enterprises/{enterprise}/copilot/metrics
 ```
 Returns Copilot usage metrics for the entire enterprise.
 
+Example:
+```bash
+curl -X GET "http://localhost:3000/api/enterprises/myenterprise/copilot/metrics" \
+     -H "Authorization: Bearer your-github-token" \
+     -H "Accept: application/json"
+```
+
 #### Get Enterprise Team Metrics
 ```http
-GET /enterprises/{enterprise}/team/{team_slug}/copilot/metrics
+GET /api/enterprises/{enterprise}/team/{team_slug}/copilot/metrics
 ```
 Returns Copilot metrics for a specific team within the enterprise.
+
+Example:
+```bash
+curl -X GET "http://localhost:3000/api/enterprises/myenterprise/team/developers/copilot/metrics" \
+     -H "Authorization: Bearer your-github-token" \
+     -H "Accept: application/json"
+```
 
 ### Organization Level Metrics
 
 #### Get Organization Metrics
 ```http
-GET /orgs/{org}/copilot/metrics
+GET /api/orgs/{org}/copilot/metrics
 ```
 Returns Copilot usage metrics for the entire organization.
 
+Example:
+```bash
+curl -X GET "http://localhost:3000/api/orgs/myorg/copilot/metrics" \
+     -H "Authorization: Bearer your-github-token" \
+     -H "Accept: application/json"
+```
+
 #### Get Organization Team Metrics
 ```http
-GET /orgs/{org}/team/{team_slug}/copilot/metrics
+GET /api/orgs/{org}/team/{team_slug}/copilot/metrics
 ```
 Returns Copilot metrics for a specific team within the organization.
+
+Example:
+```bash
+curl -X GET "http://localhost:3000/api/orgs/myorg/team/developers/copilot/metrics" \
+     -H "Authorization: Bearer your-github-token" \
+     -H "Accept: application/json"
+```
+
+Each endpoint will:
+1. Return JSON data with metrics
+2. Generate and save a PNG chart in the exports directory
+3. Export the full data as JSON in the exports directory
 
 ## Export Format
 
