@@ -110,6 +110,79 @@ All endpoints return JSON responses with the following structure. Additionally, 
 
 The `chartData` object is formatted for use with chart libraries like Chart.js. The API automatically generates and saves chart images in PNG format in the `exports` directory.
 
+## Example Responses
+
+### Enterprise Metrics Response
+```json
+{
+    "raw": {
+        "total_accepted_suggestions": 15420,
+        "total_suggestions": 28750,
+        "active_users": 85,
+        "daily_metrics": [
+            {
+                "date": "2024-01-15",
+                "accepted_suggestions": 245,
+                "total_suggestions": 480,
+                "active_users": 42
+            }
+        ]
+    },
+    "chartData": {
+        "labels": ["15/01/2024"],
+        "datasets": [
+            {
+                "label": "Sugerencias Aceptadas",
+                "data": [245],
+                "borderColor": "#36A2EB",
+                "fill": false
+            },
+            {
+                "label": "Sugerencias Totales",
+                "data": [480],
+                "borderColor": "#FF6384",
+                "fill": false
+            }
+        ]
+    },
+    "summary": {
+        "overall": {
+            "totalAcceptedSuggestions": 15420,
+            "totalSuggestions": 28750,
+            "acceptanceRate": "53.63",
+            "activeUsers": 85
+        },
+        "weeklyAverages": {
+            "acceptedSuggestions": "235.50",
+            "totalSuggestions": "442.75",
+            "acceptanceRate": "53.19"
+        },
+        "trends": {
+            "acceptedSuggestions": 8.2,
+            "totalSuggestions": 5.8,
+            "trend": "Ligero incremento"
+        },
+        "lastUpdate": "2024-01-15"
+    },
+    "chart": {
+        "success": true,
+        "filePath": "exports/copilot-metrics-2024-01-15T12-30-45.png",
+        "fileName": "copilot-metrics-2024-01-15T12-30-45.png"
+    }
+}
+```
+
+### Error Response Example
+```json
+{
+    "error": {
+        "status": 401,
+        "message": "Authentication failed. Please check your GitHub token.",
+        "details": "Bad credentials"
+    }
+}
+```
+
 ## Error Handling
 
 The API uses standard HTTP response codes:
