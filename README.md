@@ -27,6 +27,24 @@ npm start
 
 The API will be available at: http://localhost:3000
 
+## API Documentation
+
+The API includes a Swagger UI interface for easy testing and documentation:
+
+1. Start the server:
+```bash
+npm start
+```
+
+2. Access the Swagger UI at: http://localhost:3000/api-docs
+
+The Swagger interface allows you to:
+- View detailed API documentation
+- Test endpoints directly from the browser
+- See request/response schemas
+- Authenticate using your GitHub token
+- Download response examples
+
 ## API Endpoints
 
 All endpoints are prefixed with the base URL: `http://localhost:3000`
