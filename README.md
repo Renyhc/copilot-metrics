@@ -82,10 +82,23 @@ All endpoints return JSON responses with the following structure:
         ]
     },
     "summary": {
-        "totalAcceptedSuggestions": 1000,
-        "totalSuggestions": 2000,
-        "acceptanceRate": "50.00",
-        "activeUsers": 50
+        "overall": {
+            "totalAcceptedSuggestions": 1000,
+            "totalSuggestions": 2000,
+            "acceptanceRate": "50.00",
+            "activeUsers": 50
+        },
+        "weeklyAverages": {
+            "acceptedSuggestions": "145.50",
+            "totalSuggestions": "290.75",
+            "acceptanceRate": "50.04"
+        },
+        "trends": {
+            "acceptedSuggestions": 5.2,
+            "totalSuggestions": 3.8,
+            "trend": "Ligero incremento"
+        },
+        "lastUpdate": "2024-01-15"
     }
 }
 ```
