@@ -140,6 +140,7 @@ class ChartService {
             throw new Error(`Error generando gráfico: ${error.message}`);
         }
     }
+    }
 }
 
 module.exports = new ChartService();
