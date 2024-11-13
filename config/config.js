@@ -1,0 +1,7 @@
+module.exports = {
+    GITHUB_TOKEN: 'YOUR-TOKEN',
+    ENTERPRISE: 'ENTERPRISE',
+    TEAM_SLUG: 'TEAM_SLUG',
+    ORG: 'ORG',
+    API_VERSION: '2022-11-28'
+};
