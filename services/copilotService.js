@@ -1,5 +1,6 @@
 const { Octokit } = require('@octokit/core');
 const config = require('../config/config');
+const metricsTransformService = require('./metricsTransformService');
 
 const octokit = new Octokit({
     auth: config.GITHUB_TOKEN
@@ -14,7 +15,12 @@ class CopilotService {
                     'X-GitHub-Api-Version': config.API_VERSION
                 }
             });
-            return response.data;
+            const rawData = response.data;
+            return {
+                raw: rawData,
+                chartData: metricsTransformService.transformMetricsForChart(rawData),
+                summary: metricsTransformService.getMetricsSummary(rawData)
+            };
         } catch (error) {
             throw new Error(`Error fetching enterprise metrics: ${error.message}`);
         }

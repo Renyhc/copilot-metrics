@@ -57,7 +57,40 @@ Returns Copilot metrics for a specific team within the organization.
 
 ## Response Format
 
-All endpoints return JSON responses with Copilot usage metrics data.
+All endpoints return JSON responses with the following structure:
+
+```json
+{
+    "raw": {
+        // Raw metrics data from GitHub API
+    },
+    "chartData": {
+        "labels": ["01/01/2024", "02/01/2024", ...],
+        "datasets": [
+            {
+                "label": "Sugerencias Aceptadas",
+                "data": [100, 150, ...],
+                "borderColor": "#36A2EB",
+                "fill": false
+            },
+            {
+                "label": "Sugerencias Totales",
+                "data": [200, 250, ...],
+                "borderColor": "#FF6384",
+                "fill": false
+            }
+        ]
+    },
+    "summary": {
+        "totalAcceptedSuggestions": 1000,
+        "totalSuggestions": 2000,
+        "acceptanceRate": "50.00",
+        "activeUsers": 50
+    }
+}
+```
+
+The `chartData` object is formatted for use with chart libraries like Chart.js.
 
 ## Error Handling
 
