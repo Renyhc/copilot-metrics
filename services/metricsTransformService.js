@@ -43,45 +43,97 @@ class MetricsTransformService {
 
     getMetricsSummary(metricsData) {
         try {
-            // Calcular tendencias y promedios
-            const dailyMetrics = metricsData || [];
+            const dailyMetrics = Array.isArray(metricsData) ? metricsData : [];
             const lastWeekMetrics = dailyMetrics.slice(-7);
-            
-            // Calcular promedios de la última semana
-            const weeklyAvg = {
-                acceptedSuggestions: this._calculateAverage(lastWeekMetrics.map(m => m.total_code_acceptances)),
-                totalSuggestions: this._calculateAverage(lastWeekMetrics.map(m => m.total_code_suggestions)),
+            const previousWeekMetrics = dailyMetrics.slice(-14, -7);
+
+            // Función auxiliar para extraer métricas de completions
+            const extractCompletionMetrics = (metric) => {
+                let totalAccepted = 0;
+                let totalSuggestions = 0;
+                let totalLinesAccepted = 0;
+                let totalLinesSuggested = 0;
+
+                if (metric.copilot_ide_code_completions?.editors) {
+                    metric.copilot_ide_code_completions.editors.forEach(editor => {
+                        if (editor.models) {
+                            editor.models.forEach(model => {
+                                if (model.languages) {
+                                    model.languages.forEach(lang => {
+                                        totalAccepted += lang.total_code_acceptances || 0;
+                                        totalSuggestions += lang.total_code_suggestions || 0;
+                                        totalLinesAccepted += lang.total_code_lines_accepted || 0;
+                                        totalLinesSuggested += lang.total_code_lines_suggested || 0;
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+                return {
+                    totalAccepted,
+                    totalSuggestions,
+                    totalLinesAccepted,
+                    totalLinesSuggested
+                };
             };
 
-            // Calcular tendencias (comparación con semana anterior)
-            const previousWeekMetrics = dailyMetrics.slice(-14, -7);
+            // Calcular métricas semanales
+            const weeklyMetrics = lastWeekMetrics.map(extractCompletionMetrics);
+            const previousWeeklyMetrics = previousWeekMetrics.map(extractCompletionMetrics);
+
+            // Calcular promedios semanales
+            const weeklyAvg = {
+                acceptedSuggestions: this._calculateAverage(weeklyMetrics.map(m => m.totalAccepted)),
+                totalSuggestions: this._calculateAverage(weeklyMetrics.map(m => m.totalSuggestions)),
+                acceptedLines: this._calculateAverage(weeklyMetrics.map(m => m.totalLinesAccepted)),
+                suggestedLines: this._calculateAverage(weeklyMetrics.map(m => m.totalLinesSuggested))
+            };
+
+            // Calcular promedios de la semana anterior
+            const previousWeekAvg = {
+                acceptedSuggestions: this._calculateAverage(previousWeeklyMetrics.map(m => m.totalAccepted)),
+                totalSuggestions: this._calculateAverage(previousWeeklyMetrics.map(m => m.totalSuggestions)),
+                acceptedLines: this._calculateAverage(previousWeeklyMetrics.map(m => m.totalLinesAccepted)),
+                suggestedLines: this._calculateAverage(previousWeeklyMetrics.map(m => m.totalLinesSuggested))
+            };
+
+            // Calcular métricas totales del último día
+            const lastDayMetrics = extractCompletionMetrics(dailyMetrics[dailyMetrics.length - 1] || {});
+
+            // Calcular tendencias
             const trends = {
-                acceptedSuggestions: this._calculateTrend(
-                    this._calculateAverage(previousWeekMetrics.map(m => m.total_code_acceptances)),
-                    weeklyAvg.total_code_acceptances
-                ),
-                totalSuggestions: this._calculateTrend(
-                    this._calculateAverage(previousWeekMetrics.map(m => m.total_code_suggestions)),
-                    weeklyAvg.total_code_suggestions
-                )
+                acceptedSuggestions: this._calculateTrend(previousWeekAvg.acceptedSuggestions, weeklyAvg.acceptedSuggestions),
+                totalSuggestions: this._calculateTrend(previousWeekAvg.totalSuggestions, weeklyAvg.totalSuggestions),
+                acceptedLines: this._calculateTrend(previousWeekAvg.acceptedLines, weeklyAvg.acceptedLines),
+                suggestedLines: this._calculateTrend(previousWeekAvg.suggestedLines, weeklyAvg.suggestedLines)
             };
 
             return {
                 overall: {
-                    totalAcceptedSuggestions: metricsData.total_code_acceptances,
-                    totalSuggestions: metricsData.total_code_suggestions,
-                    acceptanceRate: (metricsData.total_code_acceptances / metricsData.total_code_suggestions * 100).toFixed(2),
-                    activeUsers: metricsData.total_active_users
+                    totalAcceptedSuggestions: lastDayMetrics.totalAccepted,
+                    totalSuggestions: lastDayMetrics.totalSuggestions,
+                    totalLinesAccepted: lastDayMetrics.totalLinesAccepted,
+                    totalLinesSuggested: lastDayMetrics.totalLinesSuggested,
+                    acceptanceRate: (lastDayMetrics.totalAccepted / lastDayMetrics.totalSuggestions * 100 || 0).toFixed(2),
+                    linesAcceptanceRate: (lastDayMetrics.totalLinesAccepted / lastDayMetrics.totalLinesSuggested * 100 || 0).toFixed(2),
+                    activeUsers: dailyMetrics[dailyMetrics.length - 1]?.total_active_users || 0,
+                    engagedUsers: dailyMetrics[dailyMetrics.length - 1]?.total_engaged_users || 0
                 },
                 weeklyAverages: {
-                    acceptedSuggestions: weeklyAvg.total_code_acceptances.toFixed(2),
-                    totalSuggestions: weeklyAvg.total_code_suggestions.toFixed(2),
-                    acceptanceRate: ((weeklyAvg.total_code_acceptances / weeklyAvg.total_code_suggestions) * 100).toFixed(2)
+                    acceptedSuggestions: weeklyAvg.acceptedSuggestions.toFixed(2),
+                    totalSuggestions: weeklyAvg.totalSuggestions.toFixed(2),
+                    acceptedLines: weeklyAvg.acceptedLines.toFixed(2),
+                    suggestedLines: weeklyAvg.suggestedLines.toFixed(2),
+                    acceptanceRate: ((weeklyAvg.acceptedSuggestions / weeklyAvg.totalSuggestions * 100) || 0).toFixed(2),
+                    linesAcceptanceRate: ((weeklyAvg.acceptedLines / weeklyAvg.suggestedLines * 100) || 0).toFixed(2)
                 },
                 trends: {
-                    acceptedSuggestions: trends.total_code_acceptances,
-                    totalSuggestions: trends.total_code_suggestions,
-                    trend: this._getTrendDescription(trends.total_code_acceptances)
+                    acceptedSuggestions: trends.acceptedSuggestions,
+                    totalSuggestions: trends.totalSuggestions,
+                    acceptedLines: trends.acceptedLines,
+                    suggestedLines: trends.suggestedLines,
+                    trend: this._getTrendDescription(trends.acceptedSuggestions)
                 },
                 lastUpdate: dailyMetrics[dailyMetrics.length - 1]?.date || 'No data'
             };
