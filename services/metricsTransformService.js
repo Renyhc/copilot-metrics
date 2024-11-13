@@ -88,7 +88,6 @@ class MetricsTransformService {
             throw new Error(`Error generando resumen de métricas: ${error.message}`);
         }
     }
-    }
 
     _calculateAverage(numbers) {
         return numbers.length ? numbers.reduce((a, b) => a + b, 0) / numbers.length : 0;
