@@ -1,6 +1,6 @@
 # GitHub Copilot Metrics API
 
-This API provides endpoints to retrieve GitHub Copilot usage metrics at different organizational levels.
+This API provides endpoints to retrieve GitHub Copilot usage metrics at different organizational levels. This app utilizes the [GitHub Copilot Metrics API](https://docs.github.com/en/enterprise-cloud@latest/rest/copilot/copilot-usage?apiVersion=2022-11-28) to fetch and visualize Copilot metrics.
 
 ![Primary Logo](https://media.licdn.com/dms/image/v2/C4E1BAQHXDoS2ReF-Dg/company-background_10000/company-background_10000/0/1651690069981/primary_s_a_cover?e=1732161600&v=beta&t=CmI5EqPVmPewlxZsx8Y3OlyC1MjqUC6qF8SSG0gcCAU)
 
