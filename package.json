@@ -2,10 +2,10 @@
   "name": "copilot-metrics-api",
   "version": "1.0.0",
   "description": "GitHub Copilot metrics visualization system",
-  "main": "app.js",
+  "main": "api/app.js",
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon app.js"
+    "start": "node api/app.js",
+    "dev": "nodemon api/app.js"
   },
   "dependencies": {
     "@octokit/core": "^5.0.0",
