@@ -13,7 +13,7 @@ const copilotRoutes = require('./routes/copilotRoutes');
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));
 
 // Rutas de la API
-app.use('/api', copilotRoutes);
+app.use('/', copilotRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
