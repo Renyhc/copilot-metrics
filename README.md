@@ -36,6 +36,18 @@ npm start
 
 The API will be available at: http://localhost:3000
 
+## Example Chart Outputs
+
+The API generates several types of chart visualizations that are saved as PNG files in the `exports` directory:
+
+### Summary Chart
+![Summary Chart Example](exports/copilot-metrics-2024-11-14T03-51-32-974Z.png)
+This chart shows an overview of key Copilot metrics including active users and engagement rates.
+
+### Trends Chart
+![Trends Chart Example](exports/copilot-metrics-2024-11-14T03-51-33-104Z.png)
+This visualization displays weekly trends and acceptance rates over time.
+
 ## API Documentation
 
 The API includes a Swagger UI interface for easy testing and documentation:
