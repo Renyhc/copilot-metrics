@@ -136,7 +136,7 @@ class ChartService {
             });
 
             // Asegurar que existe el directorio de exportación
-            const exportDir = path.join(__dirname, '../exports');
+            const exportDir = path.join(__dirname, '../../exports');
             if (!fs.existsSync(exportDir)) {
                 fs.mkdirSync(exportDir, { recursive: true });
             }

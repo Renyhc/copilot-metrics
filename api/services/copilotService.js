@@ -1,5 +1,5 @@
 const { Octokit } = require('@octokit/core');
-const config = require('../config/config');
+const config = require('../../config/config');
 const metricsTransformService = require('./metricsTransformService');
 const chartService = require('./chartService');
 const exportService = require('./exportService');
