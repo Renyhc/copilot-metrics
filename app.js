@@ -6,7 +6,7 @@ app.use(cors());
 app.use(express.json());
 
 const swaggerUi = require('swagger-ui-express');
-const swaggerSpecs = require('../swagger/swagger');
+const swaggerSpecs = require('./swagger/swagger');
 const copilotRoutes = require('./routes/copilotRoutes');
 
 // Middleware para Swagger UI
