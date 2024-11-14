@@ -1,2 +1,8 @@
-.aider*
+.vscode
+node_modules
+.DS_Store
+package-lock.json
+lib
+dist
 .env
+.aider*
