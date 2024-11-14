@@ -1,15 +1,15 @@
 # GitHub Copilot Metrics API
 
-![Primary Logo](https://media.licdn.com/dms/image/v2/C4E1BAQHXDoS2ReF-Dg/company-background_10000/company-background_10000/0/1651690069981/primary_s_a_cover?e=1732161600&v=beta&t=CmI5EqPVmPewlxZsx8Y3OlyC1MjqUC6qF8SSG0gcCAU)
-
 This API provides endpoints to retrieve GitHub Copilot usage metrics at different organizational levels.
+
+![Primary Logo](https://media.licdn.com/dms/image/v2/C4E1BAQHXDoS2ReF-Dg/company-background_10000/company-background_10000/0/1651690069981/primary_s_a_cover?e=1732161600&v=beta&t=CmI5EqPVmPewlxZsx8Y3OlyC1MjqUC6qF8SSG0gcCAU)
 
 ## Author and Maintainers
 
 This project is developed and maintained by:
 
 **I+D Tech (Primary)**  
-[https://primary.com.ar/](https://primary.com.ar/)
+[https://primary.com.ar/](primary.com.ar)
 
 ## Setup and Installation
 
