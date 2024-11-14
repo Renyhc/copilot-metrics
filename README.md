@@ -9,7 +9,7 @@ This API provides endpoints to retrieve GitHub Copilot usage metrics at differen
 This project is developed and maintained by:
 
 **I+D Tech (Primary)**  
-[https://primary.com.ar/](primary.com.ar)
+[primary.com.ar](https://primary.com.ar/)
 
 ## Setup and Installation
 
