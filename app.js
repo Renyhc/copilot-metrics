@@ -1,21 +1,11 @@
 const express = require('express');
-const copilotRoutes = require('./routes/copilotRoutes');
-
 const app = express();
-const port = process.env.PORT || 3000;
 
 app.use(express.json());
-app.use('/api/copilot', copilotRoutes);
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
-const express = require('express');
 const swaggerUi = require('swagger-ui-express');
 const swaggerSpecs = require('./swagger/swagger');
 const copilotRoutes = require('./routes/copilotRoutes');
-
-const app = express();
 
 // Middleware para Swagger UI
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpecs));

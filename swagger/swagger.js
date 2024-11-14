@@ -11,7 +11,7 @@ const options = {
     servers: [
       {
         url: 'http://localhost:3000',
-        description: 'Servidor de desarrollo',
+        description: 'Servidor de Métricas de Copilot',
       },
     ],
     components: {

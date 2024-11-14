@@ -25,7 +25,7 @@ const copilotService = require('../services/copilotService');
  */
 router.get('/metrics/refresh', async (req, res) => {
     try {
-        const metrics = await copilotService.getEnterpriseMetrics();
+        const metrics = await copilotService.getOrgMetrics();
         res.json(metrics);
     } catch (error) {
         res.status(500).json({ error: error.message });
