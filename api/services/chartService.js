@@ -18,11 +18,17 @@ class ChartService {
             const chartData = {
                 labels: metricsData.labels,
                 datasets: [{
-                    label: 'Tasa de Aceptación (%)',
+                    label: 'Tasa de Aceptación Diaria (%)',
                     data: metricsData.datasets[0].data.map((accepted, i) => 
                         (accepted / metricsData.datasets[1].data[i] * 100).toFixed(2)
                     ),
                     borderColor: '#4BC0C0',
+                    fill: false
+                }, {
+                    label: 'Promedio Móvil (28 días)',
+                    data: this._calculate28DayMovingAverage(metricsData),
+                    borderColor: '#FF9F40',
+                    borderDash: [5, 5],
                     fill: false
                 }]
             };
@@ -96,6 +102,22 @@ class ChartService {
         } catch (error) {
             throw new Error(`Error generando gráfico de tendencias: ${error.message}`);
         }
+    }
+
+    _calculate28DayMovingAverage(metricsData) {
+        const window = 28;
+        return metricsData.datasets[0].data.map((_, index) => {
+            if (index < window - 1) return null;
+            
+            let sumAccepted = 0;
+            let sumTotal = 0;
+            for (let i = 0; i < window; i++) {
+                const pos = index - i;
+                sumAccepted += parseFloat(metricsData.datasets[0].data[pos]) || 0;
+                sumTotal += parseFloat(metricsData.datasets[1].data[pos]) || 0;
+            }
+            return sumTotal > 0 ? ((sumAccepted / sumTotal) * 100).toFixed(2) : 0;
+        });
     }
 
     async _generateChart(type, chartData, options = {}) {

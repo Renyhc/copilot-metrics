@@ -46,6 +46,7 @@ class MetricsTransformService {
             const dailyMetrics = Array.isArray(metricsData) ? metricsData : [];
             const lastWeekMetrics = dailyMetrics.slice(-7);
             const previousWeekMetrics = dailyMetrics.slice(-14, -7);
+            const last28DaysMetrics = dailyMetrics.slice(-28);
 
             // Función auxiliar para extraer métricas de completions
             const extractCompletionMetrics = (metric) => {
@@ -135,7 +136,8 @@ class MetricsTransformService {
                     suggestedLines: trends.suggestedLines,
                     trend: this._getTrendDescription(trends.acceptedSuggestions)
                 },
-                lastUpdate: dailyMetrics[dailyMetrics.length - 1]?.date || 'No data'
+                lastUpdate: dailyMetrics[dailyMetrics.length - 1]?.date || 'No data',
+                acceptanceRate28Days: this._calculate28DayAcceptanceRate(last28DaysMetrics)
             };
         } catch (error) {
             throw new Error(`Error generando resumen de métricas: ${error.message}`);
@@ -149,6 +151,30 @@ class MetricsTransformService {
     _calculateTrend(previousValue, currentValue) {
         if (previousValue === 0) return 0;
         return ((currentValue - previousValue) / previousValue) * 100;
+    }
+
+    _calculate28DayAcceptanceRate(metrics) {
+        let totalAccepted = 0;
+        let totalSuggestions = 0;
+
+        metrics.forEach(metric => {
+            if (metric.copilot_ide_code_completions?.editors) {
+                metric.copilot_ide_code_completions.editors.forEach(editor => {
+                    if (editor.models) {
+                        editor.models.forEach(model => {
+                            if (model.languages) {
+                                model.languages.forEach(lang => {
+                                    totalAccepted += lang.total_code_acceptances || 0;
+                                    totalSuggestions += lang.total_code_suggestions || 0;
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+
+        return totalSuggestions > 0 ? ((totalAccepted / totalSuggestions) * 100).toFixed(2) : 0;
     }
 
     _getTrendDescription(trendPercentage) {

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const copilotService = require('../services/copilotService');
+const chartService = require('../services/chartService');
 
 /**
  * @swagger
@@ -26,6 +27,13 @@ const copilotService = require('../services/copilotService');
 router.get('/metrics/refresh', async (req, res) => {
     try {
         const metrics = await copilotService.getOrgMetrics();
+        
+        // Generate acceptance rate chart
+        const acceptanceRateChart = await chartService.generateAcceptanceRateChart(metrics.chartData);
+        
+        // Add chart info to response
+        metrics.chart = acceptanceRateChart;
+        
         res.json(metrics);
     } catch (error) {
         res.status(500).json({ error: error.message });
