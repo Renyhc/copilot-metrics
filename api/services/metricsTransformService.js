@@ -41,12 +41,12 @@ class MetricsTransformService {
         }
     }
 
-    getMetricsSummary(metricsData) {
+    getMetricsSummary(metricsData, type) {
+        const typeMetric = "copilot_ide_" + type;        
         try {
             const dailyMetrics = Array.isArray(metricsData) ? metricsData : [];
             const lastWeekMetrics = dailyMetrics.slice(-7);
-            const previousWeekMetrics = dailyMetrics.slice(-14, -7);
-            const last28DaysMetrics = dailyMetrics.slice(-28);
+            const previousWeekMetrics = dailyMetrics.slice(-14, -7);            
 
             // Función auxiliar para extraer métricas de completions
             const extractCompletionMetrics = (metric) => {
@@ -55,8 +55,8 @@ class MetricsTransformService {
                 let totalLinesAccepted = 0;
                 let totalLinesSuggested = 0;
 
-                if (metric.copilot_ide_code_completions?.editors) {
-                    metric.copilot_ide_code_completions.editors.forEach(editor => {
+                if (metric[typeMetric]?.editors) {
+                    metric[typeMetric].editors.forEach(editor => {
                         if (editor.models) {
                             editor.models.forEach(model => {
                                 if (model.languages) {
@@ -110,8 +110,28 @@ class MetricsTransformService {
                 suggestedLines: this._calculateTrend(previousWeekAvg.suggestedLines, weeklyAvg.suggestedLines)
             };
 
+            // Calcular métricas totales
+            const overall = dailyMetrics.map(extractCompletionMetrics);
+            const users = this._getTotalUsers(metricsData);
+            const totalMetrics ={
+                totalAcceptedSuggestions: this._calculateAverage(overall.map(m => m.totalAccepted)),
+                totalSuggestions: this._calculateAverage(overall.map(m => m.totalSuggestions)),
+                totalLinesAccepted: this._calculateAverage(overall.map(m => m.totalLinesAccepted)),
+                totalLinesSuggested: this._calculateAverage(overall.map(m => m.totalLinesSuggested)),
+            }
+
             return {
                 overall: {
+                    totalAcceptedSuggestions: totalMetrics.totalAcceptedSuggestions.toFixed(2),
+                    totalSuggestions: totalMetrics.totalSuggestions.toFixed(2),
+                    totalLinesAccepted: totalMetrics.totalLinesAccepted.toFixed(2),
+                    totalLinesSuggested: totalMetrics.totalLinesSuggested.toFixed(2),                   
+                    acceptanceRateAverage: (totalMetrics.totalAcceptedSuggestions / totalMetrics.totalSuggestions * 100 || 0).toFixed(2),
+                    linesAcceptanceRate: (totalMetrics.totalLinesAccepted / totalMetrics.totalLinesSuggested * 100 || 0).toFixed(2),
+                    activeUsers: this._calculateAverage(users.activeUsers.map(m => m)).toFixed(2),
+                    engagedUsers: this._calculateAverage(users.engagedUsers.map(m => m)).toFixed(2),
+                },
+                lastDayMetrics: {
                     totalAcceptedSuggestions: lastDayMetrics.totalAccepted,
                     totalSuggestions: lastDayMetrics.totalSuggestions,
                     totalLinesAccepted: lastDayMetrics.totalLinesAccepted,
@@ -119,7 +139,7 @@ class MetricsTransformService {
                     acceptanceRate: (lastDayMetrics.totalAccepted / lastDayMetrics.totalSuggestions * 100 || 0).toFixed(2),
                     linesAcceptanceRate: (lastDayMetrics.totalLinesAccepted / lastDayMetrics.totalLinesSuggested * 100 || 0).toFixed(2),
                     activeUsers: dailyMetrics[dailyMetrics.length - 1]?.total_active_users || 0,
-                    engagedUsers: dailyMetrics[dailyMetrics.length - 1]?.total_engaged_users || 0
+                    engagedUsers: dailyMetrics[dailyMetrics.length - 1]?.total_engaged_users || 0                    
                 },
                 weeklyAverages: {
                     acceptedSuggestions: weeklyAvg.acceptedSuggestions.toFixed(2),
@@ -136,11 +156,29 @@ class MetricsTransformService {
                     suggestedLines: trends.suggestedLines,
                     trend: this._getTrendDescription(trends.acceptedSuggestions)
                 },
-                lastUpdate: dailyMetrics[dailyMetrics.length - 1]?.date || 'No data',
-                acceptanceRate28Days: this._calculate28DayAcceptanceRate(last28DaysMetrics)
+                lastUpdate: dailyMetrics[dailyMetrics.length - 1]?.date || 'No data'
             };
         } catch (error) {
             throw new Error(`Error generando resumen de métricas: ${error.message}`);
+        }
+    }
+
+    _getTotalUsers(metricsData) {
+        try {
+            const transformedData = {
+                activeUsers: [],
+                engagedUsers: []
+            };                    
+
+            // Transformar los datos
+            metricsData.forEach(metric => {
+                    transformedData.activeUsers.push(metric.total_active_users || 0);
+                    transformedData.engagedUsers.push(metric.total_engaged_users || 0);
+                }
+            );    
+            return transformedData;
+        } catch (error) {
+            throw new Error(`Error transformando métricas de usuarios: ${error.message}`);
         }
     }
 
@@ -153,28 +191,37 @@ class MetricsTransformService {
         return ((currentValue - previousValue) / previousValue) * 100;
     }
 
-    _calculate28DayAcceptanceRate(metrics) {
-        let totalAccepted = 0;
-        let totalSuggestions = 0;
+    _calculateAcceptanceDay(metricsData) {
+        let accepted = 0;
+        let suggestions = 0;
+        const transformedData = {
+            labels: metricsData.labels,
+            accepted: [],
+            suggestions: [],
+            average:[]
+        };
 
-        metrics.forEach(metric => {
+        metricsData.map((metric, _) => {
             if (metric.copilot_ide_code_completions?.editors) {
                 metric.copilot_ide_code_completions.editors.forEach(editor => {
                     if (editor.models) {
                         editor.models.forEach(model => {
                             if (model.languages) {
                                 model.languages.forEach(lang => {
-                                    totalAccepted += lang.total_code_acceptances || 0;
-                                    totalSuggestions += lang.total_code_suggestions || 0;
+                                    accepted += lang.total_code_acceptances || 0;
+                                    suggestions += lang.total_code_suggestions || 0;                                    
                                 });
                             }
                         });
                     }
+                    
                 });
             }
+            transformedData.accepted.push(accepted);                                    
+            transformedData.suggestions.push(suggestions);
+            transformedData.average.push(suggestions > 0 ? ((accepted / suggestions) * 100).toFixed(2) : 0);            
         });
-
-        return totalSuggestions > 0 ? ((totalAccepted / totalSuggestions) * 100).toFixed(2) : 0;
+        return transformedData;
     }
 
     _getTrendDescription(trendPercentage) {
