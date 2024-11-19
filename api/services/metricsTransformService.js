@@ -69,7 +69,8 @@ class MetricsTransformService {
         return ((currentValue - previousValue) / previousValue) * 100;
     }
 
-    getAcceptanceByDay(metricsData) {
+    // Transformar métricas de IDE para gráfico de aceptación de sugerencias por día
+    getIdeAcceptanceByDay(metricsData) {
         const transformedData = {
             labels: [],
             accepted: [],
@@ -78,8 +79,8 @@ class MetricsTransformService {
         };
 
         // Asegurar que metricsData es un array y ordenarlo por fecha
-        const sortedData = Array.isArray(metricsData) ? 
-            [...metricsData].sort((a, b) => new Date(a.date) - new Date(b.date)) : 
+        const sortedData = Array.isArray(metricsData) ?
+            [...metricsData].sort((a, b) => new Date(a.date) - new Date(b.date)) :
             [];
 
         sortedData.forEach(dayMetric => {
@@ -106,8 +107,8 @@ class MetricsTransformService {
             transformedData.accepted.push(dayAccepted);
             transformedData.suggestions.push(daySuggestions);
             transformedData.average.push(
-                daySuggestions > 0 ? 
-                ((dayAccepted / daySuggestions) * 100).toFixed(2) : 
+                daySuggestions > 0 ?
+                ((dayAccepted / daySuggestions) * 100).toFixed(2) :
                 '0'
             );
         });
