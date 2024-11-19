@@ -224,6 +224,115 @@ class MetricsTransformService {
         return transformedData;
     }
 
+    getChatMetricsSummary(metricsData) {
+        try {
+            const dailyMetrics = Array.isArray(metricsData) ? metricsData : [];
+            const lastWeekMetrics = dailyMetrics.slice(-7);
+            const previousWeekMetrics = dailyMetrics.slice(-14, -7);
+
+            // Función auxiliar para extraer métricas de chat
+            const extractChatMetrics = (metric) => {
+                let totalChats = 0;
+                let totalCopyEvents = 0;
+                let totalInsertionEvents = 0;
+                let totalEngagedUsers = 0;
+
+                if (metric.copilot_ide_chat?.editors) {
+                    metric.copilot_ide_chat.editors.forEach(editor => {
+                        if (editor.models) {
+                            editor.models.forEach(model => {
+                                totalChats += model.total_chats || 0;
+                                totalCopyEvents += model.total_chat_copy_events || 0;
+                                totalInsertionEvents += model.total_chat_insertion_events || 0;
+                            });
+                        }
+                        totalEngagedUsers += editor.total_engaged_users || 0;
+                    });
+                }
+                return {
+                    totalChats,
+                    totalCopyEvents,
+                    totalInsertionEvents,
+                    totalEngagedUsers
+                };
+            };
+
+            // Calcular métricas semanales
+            const weeklyMetrics = lastWeekMetrics.map(extractChatMetrics);
+            const previousWeeklyMetrics = previousWeekMetrics.map(extractChatMetrics);
+
+            // Calcular promedios semanales
+            const weeklyAvg = {
+                chats: this._calculateAverage(weeklyMetrics.map(m => m.totalChats)),
+                copyEvents: this._calculateAverage(weeklyMetrics.map(m => m.totalCopyEvents)),
+                insertionEvents: this._calculateAverage(weeklyMetrics.map(m => m.totalInsertionEvents)),
+                engagedUsers: this._calculateAverage(weeklyMetrics.map(m => m.totalEngagedUsers))
+            };
+
+            // Calcular promedios de la semana anterior
+            const previousWeekAvg = {
+                chats: this._calculateAverage(previousWeeklyMetrics.map(m => m.totalChats)),
+                copyEvents: this._calculateAverage(previousWeeklyMetrics.map(m => m.totalCopyEvents)),
+                insertionEvents: this._calculateAverage(previousWeeklyMetrics.map(m => m.totalInsertionEvents)),
+                engagedUsers: this._calculateAverage(previousWeeklyMetrics.map(m => m.totalEngagedUsers))
+            };
+
+            // Calcular métricas del último día
+            const lastDayMetrics = extractChatMetrics(dailyMetrics[dailyMetrics.length - 1] || {});
+
+            // Calcular tendencias
+            const trends = {
+                chats: this._calculateTrend(previousWeekAvg.chats, weeklyAvg.chats),
+                copyEvents: this._calculateTrend(previousWeekAvg.copyEvents, weeklyAvg.copyEvents),
+                insertionEvents: this._calculateTrend(previousWeekAvg.insertionEvents, weeklyAvg.insertionEvents),
+                engagedUsers: this._calculateTrend(previousWeekAvg.engagedUsers, weeklyAvg.engagedUsers)
+            };
+
+            // Calcular métricas totales
+            const overall = dailyMetrics.map(extractChatMetrics);
+            const totalMetrics = {
+                totalChats: this._calculateAverage(overall.map(m => m.totalChats)),
+                totalCopyEvents: this._calculateAverage(overall.map(m => m.totalCopyEvents)),
+                totalInsertionEvents: this._calculateAverage(overall.map(m => m.totalInsertionEvents)),
+                totalEngagedUsers: this._calculateAverage(overall.map(m => m.totalEngagedUsers))
+            };
+
+            return {
+                overall: {
+                    totalChats: totalMetrics.totalChats.toFixed(2),
+                    totalCopyEvents: totalMetrics.totalCopyEvents.toFixed(2),
+                    totalInsertionEvents: totalMetrics.totalInsertionEvents.toFixed(2),
+                    totalEngagedUsers: totalMetrics.totalEngagedUsers.toFixed(2),
+                    interactionRate: ((totalMetrics.totalCopyEvents + totalMetrics.totalInsertionEvents) / totalMetrics.totalChats * 100 || 0).toFixed(2)
+                },
+                lastDayMetrics: {
+                    totalChats: lastDayMetrics.totalChats,
+                    totalCopyEvents: lastDayMetrics.totalCopyEvents,
+                    totalInsertionEvents: lastDayMetrics.totalInsertionEvents,
+                    totalEngagedUsers: lastDayMetrics.totalEngagedUsers,
+                    interactionRate: ((lastDayMetrics.totalCopyEvents + lastDayMetrics.totalInsertionEvents) / lastDayMetrics.totalChats * 100 || 0).toFixed(2)
+                },
+                weeklyAverages: {
+                    chats: weeklyAvg.chats.toFixed(2),
+                    copyEvents: weeklyAvg.copyEvents.toFixed(2),
+                    insertionEvents: weeklyAvg.insertionEvents.toFixed(2),
+                    engagedUsers: weeklyAvg.engagedUsers.toFixed(2),
+                    interactionRate: ((weeklyAvg.copyEvents + weeklyAvg.insertionEvents) / weeklyAvg.chats * 100 || 0).toFixed(2)
+                },
+                trends: {
+                    chats: trends.chats,
+                    copyEvents: trends.copyEvents,
+                    insertionEvents: trends.insertionEvents,
+                    engagedUsers: trends.engagedUsers,
+                    trend: this._getTrendDescription(trends.chats)
+                },
+                lastUpdate: dailyMetrics[dailyMetrics.length - 1]?.date || 'No data'
+            };
+        } catch (error) {
+            throw new Error(`Error generando resumen de métricas de chat: ${error.message}`);
+        }
+    }
+
     _getTrendDescription(trendPercentage) {
         if (trendPercentage > 10) return 'Incremento significativo';
         if (trendPercentage > 0) return 'Ligero incremento';
