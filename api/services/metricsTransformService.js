@@ -41,8 +41,71 @@ class MetricsTransformService {
         }
     }
 
-    getMetricsSummary(metricsData, type) {
-        const typeMetric = "copilot_ide_" + type;        
+    _getTotalUsers(metricsData) {
+        try {
+            const transformedData = {
+                activeUsers: [],
+                engagedUsers: []
+            };                    
+
+            // Transformar los datos
+            metricsData.forEach(metric => {
+                    transformedData.activeUsers.push(metric.total_active_users || 0);
+                    transformedData.engagedUsers.push(metric.total_engaged_users || 0);
+                }
+            );    
+            return transformedData;
+        } catch (error) {
+            throw new Error(`Error transformando métricas de usuarios: ${error.message}`);
+        }
+    }
+
+    _calculateAverage(numbers) {
+        return numbers.length ? numbers.reduce((a, b) => a + b, 0) / numbers.length : 0;
+    }
+
+    _calculateTrend(previousValue, currentValue) {
+        if (previousValue === 0) return 0;
+        return ((currentValue - previousValue) / previousValue) * 100;
+    }
+
+    getAcceptanceByDay(metricsData) {
+        let accepted = 0;
+        let suggestions = 0;
+        const transformedData = {
+            labels: metricsData.labels,
+            accepted: [],
+            suggestions: [],
+            average:[]
+        };
+
+        metricsData.map((metric, _) => {
+            let accepted = 0;
+            let suggestions = 0;
+            if (metric.copilot_ide_code_completions?.editors) {
+                metric.copilot_ide_code_completions.editors.forEach(editor => {
+                    if (editor.models) {
+                        editor.models.forEach(model => {
+                            if (model.languages) {
+                                model.languages.forEach(lang => {
+                                    accepted += lang.total_code_acceptances || 0;
+                                    suggestions += lang.total_code_suggestions || 0;                                    
+                                });
+                            }
+                        });
+                    }
+                    
+                });
+            }
+            transformedData.accepted.push(accepted);                                    
+            transformedData.suggestions.push(suggestions);
+            transformedData.average.push(suggestions > 0 ? ((accepted / suggestions) * 100).toFixed(2) : 0);            
+        });
+        return transformedData;
+    }
+
+    // Resumen - Métricas de IDE
+    getIdeMetricsSummary(metricsData) {      
         try {
             const dailyMetrics = Array.isArray(metricsData) ? metricsData : [];
             const lastWeekMetrics = dailyMetrics.slice(-7);
@@ -55,8 +118,8 @@ class MetricsTransformService {
                 let totalLinesAccepted = 0;
                 let totalLinesSuggested = 0;
 
-                if (metric[typeMetric]?.editors) {
-                    metric[typeMetric].editors.forEach(editor => {
+                if (metric.copilot_ide_code_completions?.editors) {
+                    metric.copilot_ide_code_completions.editors.forEach(editor => {
                         if (editor.models) {
                             editor.models.forEach(model => {
                                 if (model.languages) {
@@ -163,67 +226,7 @@ class MetricsTransformService {
         }
     }
 
-    _getTotalUsers(metricsData) {
-        try {
-            const transformedData = {
-                activeUsers: [],
-                engagedUsers: []
-            };                    
-
-            // Transformar los datos
-            metricsData.forEach(metric => {
-                    transformedData.activeUsers.push(metric.total_active_users || 0);
-                    transformedData.engagedUsers.push(metric.total_engaged_users || 0);
-                }
-            );    
-            return transformedData;
-        } catch (error) {
-            throw new Error(`Error transformando métricas de usuarios: ${error.message}`);
-        }
-    }
-
-    _calculateAverage(numbers) {
-        return numbers.length ? numbers.reduce((a, b) => a + b, 0) / numbers.length : 0;
-    }
-
-    _calculateTrend(previousValue, currentValue) {
-        if (previousValue === 0) return 0;
-        return ((currentValue - previousValue) / previousValue) * 100;
-    }
-
-    _calculateAcceptanceDay(metricsData) {
-        let accepted = 0;
-        let suggestions = 0;
-        const transformedData = {
-            labels: metricsData.labels,
-            accepted: [],
-            suggestions: [],
-            average:[]
-        };
-
-        metricsData.map((metric, _) => {
-            if (metric.copilot_ide_code_completions?.editors) {
-                metric.copilot_ide_code_completions.editors.forEach(editor => {
-                    if (editor.models) {
-                        editor.models.forEach(model => {
-                            if (model.languages) {
-                                model.languages.forEach(lang => {
-                                    accepted += lang.total_code_acceptances || 0;
-                                    suggestions += lang.total_code_suggestions || 0;                                    
-                                });
-                            }
-                        });
-                    }
-                    
-                });
-            }
-            transformedData.accepted.push(accepted);                                    
-            transformedData.suggestions.push(suggestions);
-            transformedData.average.push(suggestions > 0 ? ((accepted / suggestions) * 100).toFixed(2) : 0);            
-        });
-        return transformedData;
-    }
-
+    // Resumen - Métricas de Chat
     getChatMetricsSummary(metricsData) {
         try {
             const dailyMetrics = Array.isArray(metricsData) ? metricsData : [];
