@@ -69,6 +69,53 @@ class MetricsTransformService {
         return ((currentValue - previousValue) / previousValue) * 100;
     }
 
+    // Transformar métricas de Chat para gráfico por día
+    getChatAcceptanceByDay(metricsData) {
+        const transformedData = {
+            labels: [],
+            chats: [],
+            interactions: [], // suma de copy + insertion events
+            interactionRate: [] // (copy + insertion) / chats * 100
+        };
+
+        // Asegurar que metricsData es un array y ordenarlo por fecha
+        const sortedData = Array.isArray(metricsData) ?
+            [...metricsData].sort((a, b) => new Date(a.date) - new Date(b.date)) :
+            [];
+
+        sortedData.forEach(dayMetric => {
+            let dayChats = 0;
+            let dayCopyEvents = 0;
+            let dayInsertionEvents = 0;
+
+            if (dayMetric.copilot_ide_chat?.editors) {
+                dayMetric.copilot_ide_chat.editors.forEach(editor => {
+                    if (editor.models) {
+                        editor.models.forEach(model => {
+                            dayChats += model.total_chats || 0;
+                            dayCopyEvents += model.total_chat_copy_events || 0;
+                            dayInsertionEvents += model.total_chat_insertion_events || 0;
+                        });
+                    }
+                });
+            }
+
+            const dayInteractions = dayCopyEvents + dayInsertionEvents;
+            
+            // Agregar datos del día
+            transformedData.labels.push(dayMetric.date);
+            transformedData.chats.push(dayChats);
+            transformedData.interactions.push(dayInteractions);
+            transformedData.interactionRate.push(
+                dayChats > 0 ? 
+                ((dayInteractions / dayChats) * 100).toFixed(2) : 
+                '0'
+            );
+        });
+
+        return transformedData;
+    }
+
     // Transformar métricas de IDE para gráfico de aceptación de sugerencias por día
     getIdeAcceptanceByDay(metricsData) {
         const transformedData = {
