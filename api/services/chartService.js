@@ -159,6 +159,101 @@ class ChartService {
         }
     }
 
+    async generateEditorCharts(editorData) {
+        try {
+            // Gráfico de editores por prompts aceptados
+            const acceptedPromptsChart = {
+                labels: editorData.byAcceptedPrompts.map(e => e.name),
+                datasets: [{
+                    label: 'Prompts Aceptados',
+                    data: editorData.byAcceptedPrompts.map(e => e.acceptedPrompts),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF'
+                    ]
+                }]
+            };
+
+            // Gráfico de editores por tasa de aceptación
+            const acceptanceRateChart = {
+                labels: editorData.byAcceptanceRate.map(e => e.name),
+                datasets: [{
+                    label: 'Tasa de Aceptación (%)',
+                    data: editorData.byAcceptanceRate.map(e => e.acceptanceRate),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF'
+                    ]
+                }]
+            };
+
+            // Gráfico de editores por usuarios comprometidos
+            const engagedUsersChart = {
+                labels: editorData.byEngagedUsers.map(e => e.name),
+                datasets: [{
+                    label: 'Usuarios Comprometidos',
+                    data: editorData.byEngagedUsers.map(e => e.engagedUsers),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF'
+                    ]
+                }]
+            };
+
+            // Generar los tres gráficos
+            const promptsChartResult = await this._generateChart('pie', acceptedPromptsChart, {
+                title: 'Editores por Prompts Aceptados',
+                height: 300
+            });
+
+            const rateChartResult = await this._generateChart('pie', acceptanceRateChart, {
+                title: 'Editores por Tasa de Aceptación',
+                height: 300
+            });
+
+            const usersChartResult = await this._generateChart('pie', engagedUsersChart, {
+                title: 'Editores por Usuarios Comprometidos',
+                height: 300
+            });
+
+            return {
+                acceptedPrompts: {
+                    chart: promptsChartResult,
+                    data: acceptedPromptsChart
+                },
+                acceptanceRate: {
+                    chart: rateChartResult,
+                    data: acceptanceRateChart
+                },
+                engagedUsers: {
+                    chart: usersChartResult,
+                    data: engagedUsersChart
+                },
+                tableData: editorData.allEditors.map(editor => ({
+                    editor: editor.name,
+                    acceptedPrompts: editor.acceptedPrompts,
+                    totalPrompts: editor.totalPrompts,
+                    acceptanceRate: editor.acceptanceRate,
+                    acceptedLines: editor.acceptedLines,
+                    totalLines: editor.totalLines,
+                    linesAcceptanceRate: editor.linesAcceptanceRate,
+                    engagedUsers: editor.engagedUsers
+                }))
+            };
+        } catch (error) {
+            throw new Error(`Error generando gráficos de editores: ${error.message}`);
+        }
+    }
+
     async generateLanguageCharts(languageData) {
         try {
             // Gráfico de top 5 por prompts aceptados

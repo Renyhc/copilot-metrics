@@ -427,6 +427,74 @@ class MetricsTransformService {
         }
     }
 
+    getTopEditors(metricsData) {
+        try {
+            const editorStats = new Map();
+            const last28Days = metricsData.slice(-28);
+
+            // Recopilar estadísticas por editor
+            last28Days.forEach(dayMetric => {
+                if (dayMetric.copilot_ide_code_completions?.editors) {
+                    dayMetric.copilot_ide_code_completions.editors.forEach(editor => {
+                        const stats = editorStats.get(editor.name) || {
+                            name: editor.name,
+                            acceptedPrompts: 0,
+                            totalPrompts: 0,
+                            acceptedLines: 0,
+                            totalLines: 0,
+                            engagedUsers: 0
+                        };
+
+                        // Acumular métricas de todos los modelos y lenguajes del editor
+                        if (editor.models) {
+                            editor.models.forEach(model => {
+                                if (model.languages) {
+                                    model.languages.forEach(lang => {
+                                        stats.acceptedPrompts += lang.total_code_acceptances || 0;
+                                        stats.totalPrompts += lang.total_code_suggestions || 0;
+                                        stats.acceptedLines += lang.total_code_lines_accepted || 0;
+                                        stats.totalLines += lang.total_code_lines_suggested || 0;
+                                    });
+                                }
+                            });
+                        }
+                        stats.engagedUsers = Math.max(stats.engagedUsers, editor.total_engaged_users || 0);
+
+                        editorStats.set(editor.name, stats);
+                    });
+                }
+            });
+
+            // Convertir Map a Array y calcular tasas
+            const editorArray = Array.from(editorStats.values()).map(stats => ({
+                ...stats,
+                acceptanceRate: stats.totalPrompts > 0 ? 
+                    ((stats.acceptedPrompts / stats.totalPrompts) * 100).toFixed(2) : 0,
+                linesAcceptanceRate: stats.totalLines > 0 ?
+                    ((stats.acceptedLines / stats.totalLines) * 100).toFixed(2) : 0
+            }));
+
+            // Ordenar por diferentes métricas
+            const byAcceptedPrompts = [...editorArray]
+                .sort((a, b) => b.acceptedPrompts - a.acceptedPrompts);
+
+            const byAcceptanceRate = [...editorArray]
+                .sort((a, b) => b.acceptanceRate - a.acceptanceRate);
+
+            const byEngagedUsers = [...editorArray]
+                .sort((a, b) => b.engagedUsers - a.engagedUsers);
+
+            return {
+                byAcceptedPrompts,
+                byAcceptanceRate,
+                byEngagedUsers,
+                allEditors: editorArray
+            };
+        } catch (error) {
+            throw new Error(`Error analizando métricas por editor: ${error.message}`);
+        }
+    }
+
     _getTrendDescription(trendPercentage) {
         if (trendPercentage > 10) return 'Incremento significativo';
         if (trendPercentage > 0) return 'Ligero incremento';
