@@ -485,18 +485,8 @@ class MetricsTransformService {
         }
     }
 
-    _calculateAverage(numbers) {
-        return numbers.length ? numbers.reduce((a, b) => a + b, 0) / numbers.length : 0;
-    }
-
-    _calculateTrend(previousValue, currentValue) {
-        if (previousValue === 0) return 0;
-        return ((currentValue - previousValue) / previousValue) * 100;
-    }
-    
     getProductivityMetrics(metricsData) {
         try {
-            const last28Days = metricsData.slice(-28);
             const productivityStats = {
                 daily: [],
                 summary: {
@@ -510,7 +500,7 @@ class MetricsTransformService {
             };
 
             // Analizar datos diarios
-            last28Days.forEach(dayMetric => {
+            metricsData.forEach(dayMetric => {
                 const dayStats = {
                     date: dayMetric.date,
                     acceptedSuggestions: 0,
@@ -563,7 +553,7 @@ class MetricsTransformService {
                 (productivityStats.summary.totalAcceptedLines / productivityStats.summary.totalSuggestedLines * 100).toFixed(2) : 0;
 
             productivityStats.summary.averageTimeSavedPerDay = 
-                (productivityStats.summary.totalTimeSaved / last28Days.length).toFixed(2);
+                (productivityStats.summary.totalTimeSaved / metricsData.length).toFixed(2);
 
             productivityStats.summary.productivityGain = 
                 ((productivityStats.summary.totalAcceptedLines * 100) / 
@@ -575,6 +565,17 @@ class MetricsTransformService {
         }
     }
 
+    //#region Métodos auxiliares
+
+    _calculateAverage(numbers) {
+        return numbers.length ? numbers.reduce((a, b) => a + b, 0) / numbers.length : 0;
+    }
+
+    _calculateTrend(previousValue, currentValue) {
+        if (previousValue === 0) return 0;
+        return ((currentValue - previousValue) / previousValue) * 100;
+    }
+
     _getTrendDescription(trendPercentage) {
         if (trendPercentage > 10) return 'Incremento significativo';
         if (trendPercentage > 0) return 'Ligero incremento';
@@ -582,6 +583,8 @@ class MetricsTransformService {
         if (trendPercentage > -10) return 'Ligera disminución';
         return 'Disminución significativa';
     }
+
+    //#endregion
 }
 
 module.exports = new MetricsTransformService();

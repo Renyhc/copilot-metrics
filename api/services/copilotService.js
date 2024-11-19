@@ -9,43 +9,34 @@ const octokit = new Octokit({
     url : config.GITHUB_API_URL
 });
 
+const headers = {
+    'Accept': "application/vnd.github+json",
+    'X-GitHub-Api-Version': config.API_VERSION
+};
+
 class CopilotService {
     async getEnterpriseMetrics() {
         try {
             const response = await octokit.request('GET /enterprises/{enterprise}/copilot/metrics', {
                 enterprise: config.ENTERPRISE,
-                headers: {
-                    'X-GitHub-Api-Version': config.API_VERSION
-                }
+                headers: headers
             });
             const rawData = response.data;
-            const transformedData = metricsTransformService.transformMetricsForChart(rawData);
-            // Generar múltiples gráficos
-            const lineChartResult = await chartService.generateLineChart(transformedData, {
-                title: 'Métricas de Copilot - Nivel Empresa'
-            });
-            const acceptanceChartResult = await chartService.generateAcceptanceRateChart(transformedData);
-            const usersChartResult = await chartService.generateUsersBarChart(rawData);
-            const trendsChartResult = await chartService.generateWeeklyTrendsChart(rawData);
+            const usersData = metricsTransformService.getUsers(rawData);
 
+            // Generar múltiples gráficos
             const chartResults = {
-                lineChart: lineChartResult,
-                acceptanceChart: acceptanceChartResult,
-                usersChart: usersChartResult,
-                trendsChart: trendsChartResult
+                usersChart: await chartService.generateUsersChart(usersData),
             };
             
             // Exportar datos a JSON
             const jsonExport = await exportService.exportMetricsToJson({
                 raw: rawData,
-                chartData: transformedData,
-                summary: metricsTransformService.getMetricsSummary(rawData)
+                charts: chartResults,
             }, 'enterprise');
             
             return {
                 raw: rawData,
-                chartData: transformedData,
-                summary: metricsTransformService.getMetricsSummary(rawData),
                 charts: chartResults,
                 export: jsonExport
             };
@@ -59,28 +50,25 @@ class CopilotService {
             const response = await octokit.request('GET /enterprises/{enterprise}/team/{team_slug}/copilot/metrics', {
                 enterprise: config.ENTERPRISE,
                 team_slug: config.TEAM_SLUG,
-                headers: {
-                    'X-GitHub-Api-Version': config.API_VERSION
-                }
+                headers: headers
             });
             const rawData = response.data;
-            const transformedData = metricsTransformService.transformMetricsForChart(rawData);
-            const chartResult = await chartService.generateLineChart(transformedData, {
-                title: 'Métricas de Copilot - Nivel Equipo Empresa'
-            });
-            
+            const usersData = metricsTransformService.getUsers(rawData);
+
+            // Generar múltiples gráficos
+            const chartResults = {
+                usersChart: await chartService.generateUsersChart(usersData),
+            };
+
             // Exportar datos a JSON
             const jsonExport = await exportService.exportMetricsToJson({
                 raw: rawData,
-                chartData: transformedData,
-                summary: metricsTransformService.getMetricsSummary(rawData)
+                charts: chartResults,
             }, 'enterprise-team');
             
             return {
                 raw: rawData,
-                chartData: transformedData,
-                summary: metricsTransformService.getMetricsSummary(rawData),
-                chart: chartResult,
+                charts: chartResults,
                 export: jsonExport
             };
         } catch (error) {
@@ -92,34 +80,50 @@ class CopilotService {
         try {
             const response = await octokit.request('GET /orgs/{org}/copilot/metrics', {
                 org: config.ORG,
-                headers: {
-                    'X-GitHub-Api-Version': config.API_VERSION
-                }
+                headers: headers
             });
+
             const rawData = response.data;
-            const transformedData = metricsTransformService.transformMetricsForChart(rawData);
-            // Generar múltiples gráficos
+            const usersData = metricsTransformService.getUsers(rawData);
+            const activityIdeByDay = metricsTransformService.getIdeActivityByDay(rawData);
+            const activityChatByDay = metricsTransformService.getChatActivityByDay(rawData);   
+            const languageAnalysis = metricsTransformService.getTopLanguages(rawData);     
+            const editorsAnalysis = metricsTransformService.getTopEditors(rawData);
+            const summaryCode = metricsTransformService.getIdeMetricsSummary(rawData);
+            const summaryChat = metricsTransformService.getChatMetricsSummary(rawData);      
+            const productivityAnalysis = metricsTransformService.getProductivityMetrics(rawData); 
+
+            // Generar múltiples gráficos       
             const chartResults = {
-                lineChart: await chartService.generateLineChart(transformedData, {
-                    title: 'Métricas de Copilot - Nivel Organización'
-                }),
-                acceptanceChart: await chartService.generateAcceptanceRateChart(transformedData),
-                usersChart: await chartService.generateUsersBarChart(rawData),
-                trendsChart: await chartService.generateWeeklyTrendsChart(rawData)
+                usersChart: await chartService.generateUsersChart(usersData),
+                activityIdeChart: await chartService.generateIdeActivityChart(activityIdeByDay),
+                activityChatChart: await chartService.generateChatActivityChart(activityChatByDay),
+                activityCharteRate: await chartService.generateActivityChartRate(activityIdeByDay, activityChatByDay),
+                languageCharts: await chartService.generateLanguageCharts(languageAnalysis),
+                editorsCharts: await chartService.generateEditorCharts(editorsAnalysis),
+                productivityCharts: await chartService.generateProductivityCharts(productivityAnalysis),
+                trendsChart: { 
+                    trendsCode: await chartService.generateIdeWeeklyTrendsChart(summaryCode),
+                    trendsChat: await chartService.generateChatWeeklyTrendsChart(summaryChat)
+                }
             };
+            // Resumen de métricas
+            const summary = {
+                summaryCode: summaryCode,
+                summaryChat: summaryChat
+            }
             
             // Exportar datos a JSON
             const jsonExport = await exportService.exportMetricsToJson({
                 raw: rawData,
-                chartData: transformedData,
-                summary: metricsTransformService.getMetricsSummary(rawData)
+                charts: chartResults,
+                summary: summary
             }, 'organization');
             
             return {
                 raw: rawData,
-                chartData: transformedData,
-                summary: metricsTransformService.getMetricsSummary(rawData),
                 charts: chartResults,
+                summary: summary,                
                 export: jsonExport
             };
         } catch (error) {
@@ -132,28 +136,25 @@ class CopilotService {
             const response = await octokit.request('GET /orgs/{org}/team/{team_slug}/copilot/metrics', {
                 org: config.ORG,
                 team_slug: config.TEAM_SLUG,
-                headers: {
-                    'X-GitHub-Api-Version': config.API_VERSION
-                }
+                headers: headers
             });
             const rawData = response.data;
-            const transformedData = metricsTransformService.transformMetricsForChart(rawData);
-            const chartResult = await chartService.generateLineChart(transformedData, {
-                title: 'Métricas de Copilot - Nivel Equipo Organización'
-            });
-            
+            const usersData = metricsTransformService.getUsers(rawData);
+
+            // Generar múltiples gráficos
+            const chartResults = {
+                usersChart: await chartService.generateUsersChart(usersData),
+            };
+
             // Exportar datos a JSON
             const jsonExport = await exportService.exportMetricsToJson({
                 raw: rawData,
-                chartData: transformedData,
-                summary: metricsTransformService.getMetricsSummary(rawData)
+                charts: chartResults,
             }, 'organization-team');
             
             return {
                 raw: rawData,
-                chartData: transformedData,
-                summary: metricsTransformService.getMetricsSummary(rawData),
-                chart: chartResult,
+                charts: chartResults,
                 export: jsonExport
             };
         } catch (error) {

@@ -367,18 +367,9 @@ class ChartService {
             });
 
             return {
-                acceptanceTrend: {
-                    chart: acceptanceTrendResult,
-                    data: acceptanceTrendChart
-                },
-                timeSavings: {
-                    chart: timeSavingsResult,
-                    data: timeSavingsChart
-                },
-                cumulativeProductivity: {
-                    chart: cumulativeResult,
-                    data: cumulativeProductivityChart
-                },
+                acceptanceTrend: acceptanceTrendChart,
+                timeSavings: timeSavingsChart,
+                cumulativeProductivity: cumulativeProductivityChart,
                 summary: {
                     totalTimeSaved: `${(productivityData.summary.totalTimeSaved / 60).toFixed(2)} horas`,
                     averageTimeSavedPerDay: `${(productivityData.summary.averageTimeSavedPerDay / 60).toFixed(2)} horas`,
