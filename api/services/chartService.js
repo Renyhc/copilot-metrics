@@ -197,7 +197,7 @@ class ChartService {
             const engagedUsersChart = {
                 labels: editorData.byEngagedUsers.map(e => e.name),
                 datasets: [{
-                    label: 'Usuarios Comprometidos',
+                    label: 'Usuarios',
                     data: editorData.byEngagedUsers.map(e => e.engagedUsers),
                     backgroundColor: [
                         '#FF6384',
@@ -210,34 +210,25 @@ class ChartService {
             };
 
             // Generar los tres gráficos
-            const promptsChartResult = await this._generateChart('pie', acceptedPromptsChart, {
-                title: 'Editores por Prompts Aceptados',
+            await this._generateChart('pie', acceptedPromptsChart, {
+                title: 'IDEs por Prompts Aceptados',
                 height: 300
             });
 
-            const rateChartResult = await this._generateChart('pie', acceptanceRateChart, {
-                title: 'Editores por Tasa de Aceptación',
+            await this._generateChart('pie', acceptanceRateChart, {
+                title: 'IDEs por Tasa de Aceptación',
                 height: 300
             });
 
-            const usersChartResult = await this._generateChart('pie', engagedUsersChart, {
-                title: 'Editores por Usuarios Comprometidos',
+            await this._generateChart('pie', engagedUsersChart, {
+                title: 'IDEs por Usuarios Comprometidos',
                 height: 300
             });
 
             return {
-                acceptedPrompts: {
-                    chart: promptsChartResult,
-                    data: acceptedPromptsChart
-                },
-                acceptanceRate: {
-                    chart: rateChartResult,
-                    data: acceptanceRateChart
-                },
-                engagedUsers: {
-                    chart: usersChartResult,
-                    data: engagedUsersChart
-                },
+                acceptedPrompts: acceptedPromptsChart,
+                acceptanceRate: acceptanceRateChart,
+                engagedUsers: engagedUsersChart,
                 tableData: editorData.allEditors.map(editor => ({
                     editor: editor.name,
                     acceptedPrompts: editor.acceptedPrompts,
@@ -250,7 +241,7 @@ class ChartService {
                 }))
             };
         } catch (error) {
-            throw new Error(`Error generando gráficos de editores: ${error.message}`);
+            throw new Error(`Error generando gráficos de IDEs: ${error.message}`);
         }
     }
 

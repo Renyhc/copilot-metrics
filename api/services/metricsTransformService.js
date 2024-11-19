@@ -355,15 +355,6 @@ class MetricsTransformService {
         }
     }
 
-    _calculateAverage(numbers) {
-        return numbers.length ? numbers.reduce((a, b) => a + b, 0) / numbers.length : 0;
-    }
-
-    _calculateTrend(previousValue, currentValue) {
-        if (previousValue === 0) return 0;
-        return ((currentValue - previousValue) / previousValue) * 100;
-    }
-
     getTopLanguages(metricsData) {
         try {
             const languageStats = new Map();
@@ -430,10 +421,9 @@ class MetricsTransformService {
     getTopEditors(metricsData) {
         try {
             const editorStats = new Map();
-            const last28Days = metricsData.slice(-28);
 
             // Recopilar estadísticas por editor
-            last28Days.forEach(dayMetric => {
+            metricsData.forEach(dayMetric => {
                 if (dayMetric.copilot_ide_code_completions?.editors) {
                     dayMetric.copilot_ide_code_completions.editors.forEach(editor => {
                         const stats = editorStats.get(editor.name) || {
@@ -495,6 +485,15 @@ class MetricsTransformService {
         }
     }
 
+    _calculateAverage(numbers) {
+        return numbers.length ? numbers.reduce((a, b) => a + b, 0) / numbers.length : 0;
+    }
+
+    _calculateTrend(previousValue, currentValue) {
+        if (previousValue === 0) return 0;
+        return ((currentValue - previousValue) / previousValue) * 100;
+    }
+    
     _getTrendDescription(trendPercentage) {
         if (trendPercentage > 10) return 'Incremento significativo';
         if (trendPercentage > 0) return 'Ligero incremento';
