@@ -305,6 +305,100 @@ class ChartService {
         }
     }
 
+    async generateProductivityCharts(productivityData) {
+        try {
+            // Gráfico de tendencia de aceptación diaria
+            const acceptanceTrendChart = {
+                labels: productivityData.daily.map(d => d.date),
+                datasets: [{
+                    label: 'Tasa de Aceptación de Sugerencias (%)',
+                    data: productivityData.daily.map(d => d.acceptanceRate),
+                    borderColor: '#36A2EB',
+                    fill: false
+                }, {
+                    label: 'Tasa de Aceptación de Líneas (%)',
+                    data: productivityData.daily.map(d => d.lineAcceptanceRate),
+                    borderColor: '#FF6384',
+                    fill: false
+                }]
+            };
+
+            // Gráfico de tiempo ahorrado
+            const timeSavingsChart = {
+                labels: productivityData.daily.map(d => d.date),
+                datasets: [{
+                    label: 'Tiempo Ahorrado (minutos)',
+                    data: productivityData.daily.map(d => d.estimatedTimeSaved),
+                    backgroundColor: '#4BC0C0',
+                    borderColor: '#4BC0C0',
+                    fill: true
+                }]
+            };
+
+            // Gráfico de productividad acumulada
+            const cumulativeProductivityChart = {
+                labels: productivityData.daily.map(d => d.date),
+                datasets: [{
+                    label: 'Líneas de Código Aceptadas (Acumulado)',
+                    data: this._calculateCumulative(productivityData.daily.map(d => d.acceptedLines)),
+                    borderColor: '#FFCE56',
+                    backgroundColor: '#FFCE56',
+                    fill: true
+                }]
+            };
+
+            // Generar los gráficos
+            const acceptanceTrendResult = await this._generateChart('line', acceptanceTrendChart, {
+                title: 'Tendencia de Aceptación de Código',
+                height: 300,
+                yAxisLabel: 'Porcentaje (%)'
+            });
+
+            const timeSavingsResult = await this._generateChart('line', timeSavingsChart, {
+                title: 'Tiempo Ahorrado por Día',
+                height: 300,
+                yAxisLabel: 'Minutos'
+            });
+
+            const cumulativeResult = await this._generateChart('line', cumulativeProductivityChart, {
+                title: 'Productividad Acumulada',
+                height: 300,
+                yAxisLabel: 'Líneas de Código'
+            });
+
+            return {
+                acceptanceTrend: {
+                    chart: acceptanceTrendResult,
+                    data: acceptanceTrendChart
+                },
+                timeSavings: {
+                    chart: timeSavingsResult,
+                    data: timeSavingsChart
+                },
+                cumulativeProductivity: {
+                    chart: cumulativeResult,
+                    data: cumulativeProductivityChart
+                },
+                summary: {
+                    totalTimeSaved: `${(productivityData.summary.totalTimeSaved / 60).toFixed(2)} horas`,
+                    averageTimeSavedPerDay: `${(productivityData.summary.averageTimeSavedPerDay / 60).toFixed(2)} horas`,
+                    acceptanceRate: `${productivityData.summary.acceptanceRate}%`,
+                    lineAcceptanceRate: `${productivityData.summary.lineAcceptanceRate}%`,
+                    productivityGain: `${productivityData.summary.productivityGain}%`,
+                    totalAcceptedLines: productivityData.summary.totalAcceptedLines,
+                    totalSuggestedLines: productivityData.summary.totalSuggestedLines
+                }
+            };
+        } catch (error) {
+            throw new Error(`Error generando gráficos de productividad: ${error.message}`);
+        }
+    }
+
+    _calculateCumulative(data) {
+        let cumulative = 0;
+        return data.map(value => cumulative += value);
+    }
+
     async generateChatWeeklyTrendsChart(summary) {
         try {
             const chartData = {

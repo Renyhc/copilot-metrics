@@ -494,6 +494,87 @@ class MetricsTransformService {
         return ((currentValue - previousValue) / previousValue) * 100;
     }
     
+    getProductivityMetrics(metricsData) {
+        try {
+            const last28Days = metricsData.slice(-28);
+            const productivityStats = {
+                daily: [],
+                summary: {
+                    totalAcceptedSuggestions: 0,
+                    totalSuggestions: 0,
+                    totalAcceptedLines: 0,
+                    totalSuggestedLines: 0,
+                    averageTimePerLine: 2, // Estimación en minutos por línea de código manual
+                    totalTimeSaved: 0
+                }
+            };
+
+            // Analizar datos diarios
+            last28Days.forEach(dayMetric => {
+                const dayStats = {
+                    date: dayMetric.date,
+                    acceptedSuggestions: 0,
+                    totalSuggestions: 0,
+                    acceptedLines: 0,
+                    suggestedLines: 0
+                };
+
+                if (dayMetric.copilot_ide_code_completions?.editors) {
+                    dayMetric.copilot_ide_code_completions.editors.forEach(editor => {
+                        if (editor.models) {
+                            editor.models.forEach(model => {
+                                if (model.languages) {
+                                    model.languages.forEach(lang => {
+                                        dayStats.acceptedSuggestions += lang.total_code_acceptances || 0;
+                                        dayStats.totalSuggestions += lang.total_code_suggestions || 0;
+                                        dayStats.acceptedLines += lang.total_code_lines_accepted || 0;
+                                        dayStats.suggestedLines += lang.total_code_lines_suggested || 0;
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+
+                // Calcular métricas diarias
+                dayStats.acceptanceRate = dayStats.totalSuggestions > 0 ?
+                    (dayStats.acceptedSuggestions / dayStats.totalSuggestions * 100).toFixed(2) : 0;
+                dayStats.lineAcceptanceRate = dayStats.suggestedLines > 0 ?
+                    (dayStats.acceptedLines / dayStats.suggestedLines * 100).toFixed(2) : 0;
+                dayStats.estimatedTimeSaved = (dayStats.acceptedLines * productivityStats.summary.averageTimePerLine);
+
+                productivityStats.daily.push(dayStats);
+
+                // Actualizar totales
+                productivityStats.summary.totalAcceptedSuggestions += dayStats.acceptedSuggestions;
+                productivityStats.summary.totalSuggestions += dayStats.totalSuggestions;
+                productivityStats.summary.totalAcceptedLines += dayStats.acceptedLines;
+                productivityStats.summary.totalSuggestedLines += dayStats.suggestedLines;
+                productivityStats.summary.totalTimeSaved += dayStats.estimatedTimeSaved;
+            });
+
+            // Calcular métricas globales
+            productivityStats.summary.acceptanceRate = 
+                productivityStats.summary.totalSuggestions > 0 ?
+                (productivityStats.summary.totalAcceptedSuggestions / productivityStats.summary.totalSuggestions * 100).toFixed(2) : 0;
+            
+            productivityStats.summary.lineAcceptanceRate = 
+                productivityStats.summary.totalSuggestedLines > 0 ?
+                (productivityStats.summary.totalAcceptedLines / productivityStats.summary.totalSuggestedLines * 100).toFixed(2) : 0;
+
+            productivityStats.summary.averageTimeSavedPerDay = 
+                (productivityStats.summary.totalTimeSaved / last28Days.length).toFixed(2);
+
+            productivityStats.summary.productivityGain = 
+                ((productivityStats.summary.totalAcceptedLines * 100) / 
+                (productivityStats.summary.totalAcceptedLines + productivityStats.summary.totalSuggestedLines)).toFixed(2);
+
+            return productivityStats;
+        } catch (error) {
+            throw new Error(`Error analizando métricas de productividad: ${error.message}`);
+        }
+    }
+
     _getTrendDescription(trendPercentage) {
         if (trendPercentage > 10) return 'Incremento significativo';
         if (trendPercentage > 0) return 'Ligero incremento';
