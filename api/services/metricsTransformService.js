@@ -1,24 +1,12 @@
 const moment = require('moment');
 
 class MetricsTransformService {
-    transformMetricsForChart(metricsData) {
+    getUsers(metricsData) {
         try {
             const transformedData = {
                 labels: [],
-                datasets: [
-                    {
-                        label: 'Usuarios Activos',
-                        data: [],
-                        borderColor: '#36A2EB',
-                        fill: false
-                    },
-                    {
-                        label: 'Usuarios Comprometidos',
-                        data: [],
-                        borderColor: '#FF6384',
-                        fill: false
-                    }
-                ]
+                activeUsers: [],
+                engagedUsers: []
             };
 
             // Ordenar los datos por fecha
@@ -30,47 +18,19 @@ class MetricsTransformService {
             sortedData.forEach(metric => {
                 if (metric.date) {
                     transformedData.labels.push(moment(metric.date).format('DD/MM/YYYY'));
-                    transformedData.datasets[0].data.push(metric.total_active_users || 0);
-                    transformedData.datasets[1].data.push(metric.total_engaged_users || 0);
-                }
-            });
-
-            return transformedData;
-        } catch (error) {
-            throw new Error(`Error transformando métricas: ${error.message}`);
-        }
-    }
-
-    _getTotalUsers(metricsData) {
-        try {
-            const transformedData = {
-                activeUsers: [],
-                engagedUsers: []
-            };                    
-
-            // Transformar los datos
-            metricsData.forEach(metric => {
                     transformedData.activeUsers.push(metric.total_active_users || 0);
                     transformedData.engagedUsers.push(metric.total_engaged_users || 0);
                 }
-            );    
+            });
+
             return transformedData;
         } catch (error) {
             throw new Error(`Error transformando métricas de usuarios: ${error.message}`);
         }
     }
 
-    _calculateAverage(numbers) {
-        return numbers.length ? numbers.reduce((a, b) => a + b, 0) / numbers.length : 0;
-    }
-
-    _calculateTrend(previousValue, currentValue) {
-        if (previousValue === 0) return 0;
-        return ((currentValue - previousValue) / previousValue) * 100;
-    }
-
     // Transformar métricas de Chat para gráfico por día
-    getChatAcceptanceByDay(metricsData) {
+    getChatActivityByDay(metricsData) {
         const transformedData = {
             labels: [],
             chats: [],
@@ -117,7 +77,7 @@ class MetricsTransformService {
     }
 
     // Transformar métricas de IDE para gráfico de aceptación de sugerencias por día
-    getIdeAcceptanceByDay(metricsData) {
+    getIdeActivityByDay(metricsData) {
         const transformedData = {
             labels: [],
             accepted: [],
@@ -234,7 +194,7 @@ class MetricsTransformService {
 
             // Calcular métricas totales
             const overall = dailyMetrics.map(extractCompletionMetrics);
-            const users = this._getTotalUsers(metricsData);
+            const users = this.getUsers(metricsData);
             const totalMetrics ={
                 totalAcceptedSuggestions: this._calculateAverage(overall.map(m => m.totalAccepted)),
                 totalSuggestions: this._calculateAverage(overall.map(m => m.totalSuggestions)),
@@ -393,6 +353,15 @@ class MetricsTransformService {
         } catch (error) {
             throw new Error(`Error generando resumen de métricas de chat: ${error.message}`);
         }
+    }
+
+    _calculateAverage(numbers) {
+        return numbers.length ? numbers.reduce((a, b) => a + b, 0) / numbers.length : 0;
+    }
+
+    _calculateTrend(previousValue, currentValue) {
+        if (previousValue === 0) return 0;
+        return ((currentValue - previousValue) / previousValue) * 100;
     }
 
     _getTrendDescription(trendPercentage) {

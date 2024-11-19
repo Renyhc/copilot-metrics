@@ -5,69 +5,123 @@ const fs = require('fs');
 const path = require('path');
 
 class ChartService {
-    async generateLineChart(chartData, options = {}) {
-        try {
-            return await this._generateChart('line', chartData, options);
-        } catch (error) {
-            throw new Error(`Error generando gráfico de líneas: ${error.message}`);
-        }
-    }
-
-    async generateAcceptanceRateChart(metricsData) {
+    async generateUsersChart(metricsData) {
         try {
             const chartData = {
                 labels: metricsData.labels,
                 datasets: [{
-                    label: 'Tasa de Aceptación Diaria (%)',
-                    data: metricsData.datasets[0].data.map((accepted, i) => 
-                        (accepted / metricsData.datasets[1].data[i] * 100).toFixed(2)
-                    ),
+                    label: 'Usuarios Activos',
+                    data: metricsData.activeUsers,
+                    borderColor: '#26A2EB',
+                    backgroundColor: '#36A2EB',
+                    fill: true
+                },
+                {
+                    label: 'Usuarios Comprometidos',
+                    data: metricsData.engagedUsers,
+                    borderColor: '#C63842',
+                    backgroundColor: '#FF6384',
+                    fill: true
+                }]
+            };
+            // Generar gráfico
+            await this._generateChart('bar', chartData, {
+                title: 'Distribución de Usuarios',
+                yAxisLabel: 'Usuarios'
+            });
+            return chartData;
+        } catch (error) {
+            throw new Error(`Error generando gráfico de Usuarios: ${error.message}`);
+        }
+    }
+
+    async generateIdeActivityChart(metricsData) {
+        try {
+            const chartData = {
+                labels: metricsData.labels,
+                datasets: [{
+                    label: 'Aceptación Diaria',
+                    data: metricsData.accepted,
                     borderColor: '#4BC0C0',
                     fill: false
-                }, {
-                    label: 'Promedio Móvil (28 días)',
-                    data: this._calculate28DayMovingAverage(metricsData),
-                    borderColor: '#FF9F40',
-                    borderDash: [5, 5],
+                },
+                {
+                    label: 'Sugerencias Diarias',
+                    data: metricsData.suggestions,
+                    borderColor: '#5D6BC0',
                     fill: false
                 }]
             };
-            return await this._generateChart('line', chartData, {
-                title: 'Tasa de Aceptación de Sugerencias',
-                yAxisLabel: 'Porcentaje (%)'
+            // Generar gráfico
+            await this._generateChart('line', chartData, {
+                title: 'Tasa de Aceptación de Sugerencias en el IDE',
+                yAxisLabel: 'Cantidad'
             });
+            return chartData;
         } catch (error) {
             throw new Error(`Error generando gráfico de tasa de aceptación: ${error.message}`);
         }
     }
 
-    async generateUsersBarChart(metricsData) {
+    async generateChatActivityChart(metricsData) {
         try {
             const chartData = {
-                labels: ['Usuarios Activos', 'Usuarios Comprometidos'],
+                labels: metricsData.labels,
                 datasets: [{
-                    label: 'Número de Usuarios',
-                    data: [
-                        metricsData.total_active_users || 0,
-                        metricsData.total_engaged_users || 0
-                    ],
-                    backgroundColor: ['#36A2EB', '#FF6384']
+                    label: 'Chats',
+                    data: metricsData.chats,
+                    borderColor: '#ff6384',
+                    fill: false
+                },
+                {
+                    label: 'Eventos Copiados e Insertados',
+                    data: metricsData.interactions,
+                    borderColor: '#36A2EB',
+                    fill: false
                 }]
             };
-            return await this._generateChart('bar', chartData, {
-                title: 'Distribución de Usuarios',
-                indexAxis: 'y'
+            await this._generateChart('line', chartData, {
+                title: 'Tasa de Aceptación de Sugerencias en el Copilot Chat',
+                yAxisLabel: 'Cantidad'
             });
+            return chartData;
         } catch (error) {
-            throw new Error(`Error generando gráfico de usuarios: ${error.message}`);
+            throw new Error(`Error generando gráfico de chats: ${error.message}`);
         }
     }
 
-    async generateWeeklyTrendsChart(metricsData) {
+    async generateActivityChartRate(activityIdeByDay, activityChatByDay) {
         try {
-            const summary = metricsTransformService.getMetricsSummary(metricsData);
             const chartData = {
-                labels: ['Promedio Semanal', 'Tendencia'],
+                labels: activityIdeByDay.labels,
+                datasets: [
+                    {
+                        label: 'Tasa de actividad IDE',
+                        data: activityIdeByDay.average,
+                        borderColor: '#36A2EB'
+                    },
+                    {
+                        label: 'Tasa de actividad Chat',
+                        data: activityChatByDay.interactionRate,
+                        borderColor: '#FF6384'
+                    }
+                ]
+            };
+            // Generar gráfico
+            await this._generateChart('line', chartData, {
+                title: 'Tasa de aceptación de sugerencias en IDE / Chat',
+                yAxisLabel: 'Porcentaje (%)'
+            });
+            return chartData;
+        } catch (error) {
+            throw new Error(`Error generando gráfico de tasa de actividad: ${error.message}`);
+        }
+    }
+
+    async generateIdeWeeklyTrendsChart(summary) {
+        try {
+            const chartData = {
+                labels: ['Promedio Semanal IDE', 'Tendencia'],
                 datasets: [
                     {
                         label: 'Sugerencias Aceptadas',
@@ -95,29 +149,65 @@ class ChartService {
                     }
                 ]
             };
-            return await this._generateChart('bar', chartData, {
+            // Generar gráfico
+            await this._generateChart('bar', chartData, {
                 title: 'Tendencias Semanales',
-                yAxisLabel: 'Cambio Porcentual (%)'
+                yAxisLabel: 'Porciento (%)'
             });
+            return chartData;
         } catch (error) {
             throw new Error(`Error generando gráfico de tendencias: ${error.message}`);
         }
     }
 
-    _calculate28DayMovingAverage(metricsData) {
-        const window = 28;
-        return metricsData.datasets[0].data.map((_, index) => {
-            if (index < window - 1) return null;
-            
-            let sumAccepted = 0;
-            let sumTotal = 0;
-            for (let i = 0; i < window; i++) {
-                const pos = index - i;
-                sumAccepted += parseFloat(metricsData.datasets[0].data[pos]) || 0;
-                sumTotal += parseFloat(metricsData.datasets[1].data[pos]) || 0;
-            }
-            return sumTotal > 0 ? ((sumAccepted / sumTotal) * 100).toFixed(2) : 0;
-        });
+    async generateChatWeeklyTrendsChart(summary) {
+        try {
+            const chartData = {
+                labels: ['Promedio Semanal Chat', 'Tendencia'],
+                datasets: [
+                    {
+                        label: 'Chats',
+                        data: [
+                            parseFloat(summary.weeklyAverages.chats),
+                            summary.trends.chats
+                        ],
+                        backgroundColor: '#36A2EB'
+                    },
+                    {
+                        label: 'Eventos copiados',
+                        data: [
+                            parseFloat(summary.weeklyAverages.copyEvents),
+                            summary.trends.copyEvents
+                        ],
+                        backgroundColor: '#FF6384'
+                    },
+                    {
+                        label: 'Eventos insertados',
+                        data: [
+                            parseFloat(summary.weeklyAverages.insertionEvents),
+                            summary.trends.insertionEvents
+                        ],
+                        backgroundColor: '#5C6BC0'
+                    },                
+                    {
+                        label: 'Tasa de Interacción (%)',
+                        data: [
+                            parseFloat(summary.weeklyAverages.interactionRate),
+                            parseFloat(summary.overall.interactionRate)
+                        ],
+                        backgroundColor: '#4BC0C0'
+                    }
+                ]
+            };
+            // Generar gráfico
+            await this._generateChart('bar', chartData, {
+                title: 'Tendencias Semanales',
+                yAxisLabel: 'Porciento (%)'
+            });
+            return chartData;
+        } catch (error) {
+            throw new Error(`Error generando gráfico de tendencias: ${error.message}`);
+        }
     }
 
     async _generateChart(type, chartData, options = {}) {
