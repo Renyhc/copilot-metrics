@@ -4,7 +4,18 @@ const copilotService = require('../services/copilotService');
 
 router.get('/metrics/refresh', async (req, res) => {
     try {
-        const metrics = await copilotService.getOrgMetrics();        
+        const metrics = await copilotService.getOrgMetrics();
+        
+        // Generar análisis de lenguajes
+        const languageAnalysis = metricsTransformService.getTopLanguages(metrics.raw);
+        const languageCharts = await chartService.generateLanguageCharts(languageAnalysis);
+        
+        // Agregar el análisis a la respuesta
+        metrics.languageAnalysis = {
+            charts: languageCharts,
+            statistics: languageAnalysis
+        };
+        
         res.json(metrics);
     } catch (error) {
         res.status(500).json({ error: error.message });

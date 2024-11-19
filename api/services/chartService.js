@@ -160,6 +160,72 @@ class ChartService {
         }
     }
 
+    async generateLanguageCharts(languageData) {
+        try {
+            // Gráfico de top 5 por prompts aceptados
+            const topPromptsChart = {
+                labels: languageData.topByAcceptedPrompts.map(l => l.name),
+                datasets: [{
+                    label: 'Prompts Aceptados',
+                    data: languageData.topByAcceptedPrompts.map(l => l.acceptedPrompts),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF'
+                    ]
+                }]
+            };
+
+            // Gráfico de top 5 por tasa de aceptación
+            const topRateChart = {
+                labels: languageData.topByAcceptanceRate.map(l => l.name),
+                datasets: [{
+                    label: 'Tasa de Aceptación (%)',
+                    data: languageData.topByAcceptanceRate.map(l => l.acceptanceRate),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF'
+                    ]
+                }]
+            };
+
+            // Generar ambos gráficos
+            const promptsChartResult = await this._generateChart('pie', topPromptsChart, {
+                title: 'Top 5 Lenguajes por Prompts Aceptados',
+                height: 300
+            });
+
+            const rateChartResult = await this._generateChart('pie', topRateChart, {
+                title: 'Top 5 Lenguajes por Tasa de Aceptación',
+                height: 300
+            });
+
+            return {
+                topPrompts: {
+                    chart: promptsChartResult,
+                    data: topPromptsChart
+                },
+                topRate: {
+                    chart: rateChartResult,
+                    data: topRateChart
+                },
+                tableData: languageData.allLanguages.map(lang => ({
+                    language: lang.name,
+                    acceptedPrompts: lang.acceptedPrompts,
+                    acceptedLines: lang.acceptedLines,
+                    acceptanceRate: lang.acceptanceRate
+                }))
+            };
+        } catch (error) {
+            throw new Error(`Error generando gráficos de lenguajes: ${error.message}`);
+        }
+    }
+
     async generateChatWeeklyTrendsChart(summary) {
         try {
             const chartData = {

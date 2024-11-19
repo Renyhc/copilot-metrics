@@ -364,6 +364,70 @@ class MetricsTransformService {
         return ((currentValue - previousValue) / previousValue) * 100;
     }
 
+    getTopLanguages(metricsData) {
+        try {
+            const last28Days = metricsData.slice(-28);
+            const languageStats = new Map();
+
+            // Recopilar estadísticas por lenguaje
+            last28Days.forEach(dayMetric => {
+                if (dayMetric.copilot_ide_code_completions?.editors) {
+                    dayMetric.copilot_ide_code_completions.editors.forEach(editor => {
+                        if (editor.models) {
+                            editor.models.forEach(model => {
+                                if (model.languages) {
+                                    model.languages.forEach(lang => {
+                                        const stats = languageStats.get(lang.name) || {
+                                            name: lang.name,
+                                            acceptedPrompts: 0,
+                                            totalPrompts: 0,
+                                            acceptedLines: 0,
+                                            totalLines: 0
+                                        };
+
+                                        stats.acceptedPrompts += lang.total_code_acceptances || 0;
+                                        stats.totalPrompts += lang.total_code_suggestions || 0;
+                                        stats.acceptedLines += lang.total_code_lines_accepted || 0;
+                                        stats.totalLines += lang.total_code_lines_suggested || 0;
+
+                                        languageStats.set(lang.name, stats);
+                                    });
+                                }
+                            });
+                        }
+                    });
+                }
+            });
+
+            // Convertir Map a Array y calcular tasas
+            const languageArray = Array.from(languageStats.values()).map(stats => ({
+                ...stats,
+                acceptanceRate: stats.totalPrompts > 0 ? 
+                    ((stats.acceptedPrompts / stats.totalPrompts) * 100).toFixed(2) : 0
+            }));
+
+            // Ordenar por diferentes métricas
+            const byAcceptedPrompts = [...languageArray]
+                .sort((a, b) => b.acceptedPrompts - a.acceptedPrompts)
+                .slice(0, 5);
+
+            const byAcceptanceRate = [...languageArray]
+                .sort((a, b) => b.acceptanceRate - a.acceptanceRate)
+                .slice(0, 5);
+
+            const byAcceptedLines = [...languageArray]
+                .sort((a, b) => b.acceptedLines - a.acceptedLines);
+
+            return {
+                topByAcceptedPrompts: byAcceptedPrompts,
+                topByAcceptanceRate: byAcceptanceRate,
+                allLanguages: byAcceptedLines
+            };
+        } catch (error) {
+            throw new Error(`Error analizando métricas por lenguaje: ${error.message}`);
+        }
+    }
+
     _getTrendDescription(trendPercentage) {
         if (trendPercentage > 10) return 'Incremento significativo';
         if (trendPercentage > 0) return 'Ligero incremento';
