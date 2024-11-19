@@ -159,232 +159,6 @@ class ChartService {
         }
     }
 
-    async generateEditorCharts(editorData) {
-        try {
-            // Gráfico de editores por prompts aceptados
-            const acceptedPromptsChart = {
-                labels: editorData.byAcceptedPrompts.map(e => e.name),
-                datasets: [{
-                    label: 'Prompts Aceptados',
-                    data: editorData.byAcceptedPrompts.map(e => e.acceptedPrompts),
-                    backgroundColor: [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4BC0C0',
-                        '#9966FF'
-                    ]
-                }]
-            };
-
-            // Gráfico de editores por tasa de aceptación
-            const acceptanceRateChart = {
-                labels: editorData.byAcceptanceRate.map(e => e.name),
-                datasets: [{
-                    label: 'Tasa de Aceptación (%)',
-                    data: editorData.byAcceptanceRate.map(e => e.acceptanceRate),
-                    backgroundColor: [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4BC0C0',
-                        '#9966FF'
-                    ]
-                }]
-            };
-
-            // Gráfico de editores por usuarios comprometidos
-            const engagedUsersChart = {
-                labels: editorData.byEngagedUsers.map(e => e.name),
-                datasets: [{
-                    label: 'Usuarios',
-                    data: editorData.byEngagedUsers.map(e => e.engagedUsers),
-                    backgroundColor: [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4BC0C0',
-                        '#9966FF'
-                    ]
-                }]
-            };
-
-            // Generar los tres gráficos
-            await this._generateChart('pie', acceptedPromptsChart, {
-                title: 'IDEs por Prompts Aceptados',
-                height: 300
-            });
-
-            await this._generateChart('pie', acceptanceRateChart, {
-                title: 'IDEs por Tasa de Aceptación',
-                height: 300
-            });
-
-            await this._generateChart('pie', engagedUsersChart, {
-                title: 'IDEs por Usuarios Comprometidos',
-                height: 300
-            });
-
-            return {
-                acceptedPrompts: acceptedPromptsChart,
-                acceptanceRate: acceptanceRateChart,
-                engagedUsers: engagedUsersChart,
-                tableData: editorData.allEditors.map(editor => ({
-                    editor: editor.name,
-                    acceptedPrompts: editor.acceptedPrompts,
-                    totalPrompts: editor.totalPrompts,
-                    acceptanceRate: editor.acceptanceRate,
-                    acceptedLines: editor.acceptedLines,
-                    totalLines: editor.totalLines,
-                    linesAcceptanceRate: editor.linesAcceptanceRate,
-                    engagedUsers: editor.engagedUsers
-                }))
-            };
-        } catch (error) {
-            throw new Error(`Error generando gráficos de IDEs: ${error.message}`);
-        }
-    }
-
-    async generateLanguageCharts(languageData) {
-        try {
-            // Gráfico de top 5 por prompts aceptados
-            const topPromptsChart = {
-                labels: languageData.topByAcceptedPrompts.map(l => l.name),
-                datasets: [{
-                    label: 'Prompts Aceptados',
-                    data: languageData.topByAcceptedPrompts.map(l => l.acceptedPrompts),
-                    backgroundColor: [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4BC0C0',
-                        '#9966FF'
-                    ]
-                }]
-            };
-
-            // Gráfico de top 5 por tasa de aceptación
-            const topRateChart = {
-                labels: languageData.topByAcceptanceRate.map(l => l.name),
-                datasets: [{
-                    label: 'Tasa de Aceptación (%)',
-                    data: languageData.topByAcceptanceRate.map(l => l.acceptanceRate),
-                    backgroundColor: [
-                        '#FF6384',
-                        '#36A2EB',
-                        '#FFCE56',
-                        '#4BC0C0',
-                        '#9966FF'
-                    ]
-                }]
-            };
-
-            // Generar ambos gráficos
-            await this._generateChart('pie', topPromptsChart, {
-                title: 'Top 5 Lenguajes por Prompts Aceptados',
-                height: 300
-            });
-
-            await this._generateChart('pie', topRateChart, {
-                title: 'Top 5 Lenguajes por Tasa de Aceptación',
-                height: 300
-            });
-
-            return {
-                topPrompts: topPromptsChart,
-                topRate: topRateChart,
-                tableData: languageData.allLanguages.map(lang => ({
-                    language: lang.name,
-                    acceptedPrompts: lang.acceptedPrompts,
-                    acceptedLines: lang.acceptedLines,
-                    acceptanceRate: lang.acceptanceRate
-                }))
-            };
-        } catch (error) {
-            throw new Error(`Error generando gráficos de lenguajes: ${error.message}`);
-        }
-    }
-
-    async generateProductivityCharts(productivityData) {
-        try {
-            // Gráfico de tendencia de aceptación diaria
-            const acceptanceTrendChart = {
-                labels: productivityData.daily.map(d => d.date),
-                datasets: [{
-                    label: 'Tasa de Aceptación de Sugerencias (%)',
-                    data: productivityData.daily.map(d => d.acceptanceRate),
-                    borderColor: '#36A2EB',
-                    fill: false
-                }, {
-                    label: 'Tasa de Aceptación de Líneas (%)',
-                    data: productivityData.daily.map(d => d.lineAcceptanceRate),
-                    borderColor: '#FF6384',
-                    fill: false
-                }]
-            };
-
-            // Gráfico de tiempo ahorrado
-            const timeSavingsChart = {
-                labels: productivityData.daily.map(d => d.date),
-                datasets: [{
-                    label: 'Tiempo Ahorrado (minutos)',
-                    data: productivityData.daily.map(d => d.estimatedTimeSaved),
-                    backgroundColor: '#4BC0C0',
-                    borderColor: '#4BC0C0',
-                    fill: true
-                }]
-            };
-
-            // Gráfico de productividad acumulada
-            const cumulativeProductivityChart = {
-                labels: productivityData.daily.map(d => d.date),
-                datasets: [{
-                    label: 'Líneas de Código Aceptadas (Acumulado)',
-                    data: this._calculateCumulative(productivityData.daily.map(d => d.acceptedLines)),
-                    borderColor: '#FFCE56',
-                    backgroundColor: '#FFCE56',
-                    fill: true
-                }]
-            };
-
-            // Generar los gráficos
-            const acceptanceTrendResult = await this._generateChart('line', acceptanceTrendChart, {
-                title: 'Tendencia de Aceptación de Código',
-                height: 300,
-                yAxisLabel: 'Porcentaje (%)'
-            });
-
-            const timeSavingsResult = await this._generateChart('line', timeSavingsChart, {
-                title: 'Tiempo Ahorrado por Día',
-                height: 300,
-                yAxisLabel: 'Minutos'
-            });
-
-            const cumulativeResult = await this._generateChart('line', cumulativeProductivityChart, {
-                title: 'Productividad Acumulada',
-                height: 300,
-                yAxisLabel: 'Líneas de Código'
-            });
-
-            return {
-                acceptanceTrend: acceptanceTrendChart,
-                timeSavings: timeSavingsChart,
-                cumulativeProductivity: cumulativeProductivityChart,
-                summary: {
-                    totalTimeSaved: `${(productivityData.summary.totalTimeSaved / 60).toFixed(2)} horas`,
-                    averageTimeSavedPerDay: `${(productivityData.summary.averageTimeSavedPerDay / 60).toFixed(2)} horas`,
-                    acceptanceRate: `${productivityData.summary.acceptanceRate}%`,
-                    lineAcceptanceRate: `${productivityData.summary.lineAcceptanceRate}%`,
-                    productivityGain: `${productivityData.summary.productivityGain}%`,
-                    totalAcceptedLines: productivityData.summary.totalAcceptedLines,
-                    totalSuggestedLines: productivityData.summary.totalSuggestedLines
-                }
-            };
-        } catch (error) {
-            throw new Error(`Error generando gráficos de productividad: ${error.message}`);
-        }
-    }
-
     _calculateCumulative(data) {
         let cumulative = 0;
         return data.map(value => cumulative += value);
@@ -437,6 +211,50 @@ class ChartService {
             return chartData;
         } catch (error) {
             throw new Error(`Error generando gráfico de tendencias: ${error.message}`);
+        }
+    }
+    
+    async generateTopLanguagesChart(topLanguages) {
+        try {
+            if (!topLanguages?.charts) {
+                throw new Error('No language data provided');
+            }
+    
+            // Retrieve individual chart data
+            const promtsChart = await this._generateChart('pie', 
+                topLanguages.charts.topPrompts.data, {
+                    title: 'Top 5 Languages by Accepted Prompts',
+                    height: 300,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            align: 'center'
+                        }
+                    }
+                }
+            );
+    
+            const ratesChart = await this._generateChart('pie', 
+                topLanguages.charts.topRates.data, {
+                    title: 'Top 5 Languages by Acceptance Rate',
+                    height: 300,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            align: 'center'
+                        }
+                    }
+                }
+            );
+    
+            return {
+                promtsChart,
+                ratesChart,
+                tableData: topLanguages.tableData
+            };
+    
+        } catch (error) {
+            throw new Error(`Error generating language charts: ${error.message}`);
         }
     }
 

@@ -355,32 +355,35 @@ class MetricsTransformService {
         }
     }
 
-    getTopLanguages(metricsData) {
+    async getTopLanguages(metricsData) {
         try {
-            const languageStats = new Map();
+            // Get last 28 days of data
+            const last28Days = Array.isArray(metricsData) ? 
+                metricsData.slice(-28) : [];
 
-            // Recopilar estadísticas por lenguaje
-            metricsData.forEach(dayMetric => {
+            // Aggregate language metrics
+            const languageMetrics = {};
+
+            last28Days.forEach(dayMetric => {
                 if (dayMetric.copilot_ide_code_completions?.editors) {
                     dayMetric.copilot_ide_code_completions.editors.forEach(editor => {
                         if (editor.models) {
                             editor.models.forEach(model => {
                                 if (model.languages) {
                                     model.languages.forEach(lang => {
-                                        const stats = languageStats.get(lang.name) || {
-                                            name: lang.name,
-                                            acceptedPrompts: 0,
-                                            totalPrompts: 0,
-                                            acceptedLines: 0,
-                                            totalLines: 0
-                                        };
-
-                                        stats.acceptedPrompts += lang.total_code_acceptances || 0;
-                                        stats.totalPrompts += lang.total_code_suggestions || 0;
-                                        stats.acceptedLines += lang.total_code_lines_accepted || 0;
-                                        stats.totalLines += lang.total_code_lines_suggested || 0;
-
-                                        languageStats.set(lang.name, stats);
+                                        if (!languageMetrics[lang.name]) {
+                                            languageMetrics[lang.name] = {
+                                                acceptedPrompts: 0,
+                                                totalPrompts: 0,
+                                                acceptedLines: 0,
+                                                totalLines: 0
+                                            };
+                                        }
+                                        
+                                        languageMetrics[lang.name].acceptedPrompts += lang.total_code_acceptances || 0;
+                                        languageMetrics[lang.name].totalPrompts += lang.total_code_suggestions || 0;
+                                        languageMetrics[lang.name].acceptedLines += lang.total_code_lines_accepted || 0;
+                                        languageMetrics[lang.name].totalLines += lang.total_code_lines_suggested || 0;
                                     });
                                 }
                             });
@@ -389,179 +392,73 @@ class MetricsTransformService {
                 }
             });
 
-            // Convertir Map a Array y calcular tasas
-            const languageArray = Array.from(languageStats.values()).map(stats => ({
-                ...stats,
-                acceptanceRate: stats.totalPrompts > 0 ? 
-                    ((stats.acceptedPrompts / stats.totalPrompts) * 100).toFixed(2) : 0
+            // Calculate rates and sort languages
+            const languageStats = Object.entries(languageMetrics).map(([language, metrics]) => ({
+                language,
+                acceptedPrompts: metrics.acceptedPrompts,
+                acceptedLines: metrics.acceptedLines,
+                acceptanceRate: ((metrics.acceptedPrompts / metrics.totalPrompts) * 100) || 0
             }));
 
-            // Ordenar por diferentes métricas
-            const byAcceptedPrompts = [...languageArray]
-                .sort((a, b) => b.acceptedPrompts - a.acceptedPrompts)
-                .slice(0, 5);
+            // Sort by accepted lines descending
+            languageStats.sort((a, b) => b.acceptedLines - a.acceptedLines);
 
-            const byAcceptanceRate = [...languageArray]
+            // Get top 5 by accepted prompts
+            const topByPrompts = languageStats.slice(0, 5);
+            const promptsChartData = {
+                labels: topByPrompts.map(l => l.language),
+                datasets: [{
+                    data: topByPrompts.map(l => l.acceptedPrompts),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF'
+                    ]
+                }]
+            };
+
+            // Sort by acceptance rate and get top 5
+            const topByRate = [...languageStats]
                 .sort((a, b) => b.acceptanceRate - a.acceptanceRate)
                 .slice(0, 5);
 
-            const byAcceptedLines = [...languageArray]
-                .sort((a, b) => b.acceptedLines - a.acceptedLines);
-
-            return {
-                topByAcceptedPrompts: byAcceptedPrompts,
-                topByAcceptanceRate: byAcceptanceRate,
-                allLanguages: byAcceptedLines
+            const rateChartData = {
+                labels: topByRate.map(l => l.language),
+                datasets: [{
+                    data: topByRate.map(l => l.acceptanceRate.toFixed(2)),
+                    backgroundColor: [
+                        '#FF6384',
+                        '#36A2EB',
+                        '#FFCE56',
+                        '#4BC0C0',
+                        '#9966FF'
+                    ]
+                }]
             };
-        } catch (error) {
-            throw new Error(`Error analizando métricas por lenguaje: ${error.message}`);
-        }
-    }
 
-    getTopEditors(metricsData) {
-        try {
-            const editorStats = new Map();
+            // Generate pie charts
+            const charts = {
+                topPrompts:promptsChartData,
+                topRates: rateChartData
+            };
 
-            // Recopilar estadísticas por editor
-            metricsData.forEach(dayMetric => {
-                if (dayMetric.copilot_ide_code_completions?.editors) {
-                    dayMetric.copilot_ide_code_completions.editors.forEach(editor => {
-                        const stats = editorStats.get(editor.name) || {
-                            name: editor.name,
-                            acceptedPrompts: 0,
-                            totalPrompts: 0,
-                            acceptedLines: 0,
-                            totalLines: 0,
-                            engagedUsers: 0
-                        };
-
-                        // Acumular métricas de todos los modelos y lenguajes del editor
-                        if (editor.models) {
-                            editor.models.forEach(model => {
-                                if (model.languages) {
-                                    model.languages.forEach(lang => {
-                                        stats.acceptedPrompts += lang.total_code_acceptances || 0;
-                                        stats.totalPrompts += lang.total_code_suggestions || 0;
-                                        stats.acceptedLines += lang.total_code_lines_accepted || 0;
-                                        stats.totalLines += lang.total_code_lines_suggested || 0;
-                                    });
-                                }
-                            });
-                        }
-                        stats.engagedUsers = Math.max(stats.engagedUsers, editor.total_engaged_users || 0);
-
-                        editorStats.set(editor.name, stats);
-                    });
-                }
-            });
-
-            // Convertir Map a Array y calcular tasas
-            const editorArray = Array.from(editorStats.values()).map(stats => ({
-                ...stats,
-                acceptanceRate: stats.totalPrompts > 0 ? 
-                    ((stats.acceptedPrompts / stats.totalPrompts) * 100).toFixed(2) : 0,
-                linesAcceptanceRate: stats.totalLines > 0 ?
-                    ((stats.acceptedLines / stats.totalLines) * 100).toFixed(2) : 0
+            // Format table data
+            const tableData = languageStats.map(stat => ({
+                language: stat.language,
+                acceptedPrompts: stat.acceptedPrompts,
+                acceptedLines: stat.acceptedLines,
+                acceptanceRate: stat.acceptanceRate.toFixed(2) + '%'
             }));
 
-            // Ordenar por diferentes métricas
-            const byAcceptedPrompts = [...editorArray]
-                .sort((a, b) => b.acceptedPrompts - a.acceptedPrompts);
-
-            const byAcceptanceRate = [...editorArray]
-                .sort((a, b) => b.acceptanceRate - a.acceptanceRate);
-
-            const byEngagedUsers = [...editorArray]
-                .sort((a, b) => b.engagedUsers - a.engagedUsers);
-
             return {
-                byAcceptedPrompts,
-                byAcceptanceRate,
-                byEngagedUsers,
-                allEditors: editorArray
-            };
-        } catch (error) {
-            throw new Error(`Error analizando métricas por editor: ${error.message}`);
-        }
-    }
-
-    getProductivityMetrics(metricsData) {
-        try {
-            const productivityStats = {
-                daily: [],
-                summary: {
-                    totalAcceptedSuggestions: 0,
-                    totalSuggestions: 0,
-                    totalAcceptedLines: 0,
-                    totalSuggestedLines: 0,
-                    averageTimePerLine: 2, // Estimación en minutos por línea de código manual
-                    totalTimeSaved: 0
-                }
+                charts,
+                tableData
             };
 
-            // Analizar datos diarios
-            metricsData.forEach(dayMetric => {
-                const dayStats = {
-                    date: dayMetric.date,
-                    acceptedSuggestions: 0,
-                    totalSuggestions: 0,
-                    acceptedLines: 0,
-                    suggestedLines: 0
-                };
-
-                if (dayMetric.copilot_ide_code_completions?.editors) {
-                    dayMetric.copilot_ide_code_completions.editors.forEach(editor => {
-                        if (editor.models) {
-                            editor.models.forEach(model => {
-                                if (model.languages) {
-                                    model.languages.forEach(lang => {
-                                        dayStats.acceptedSuggestions += lang.total_code_acceptances || 0;
-                                        dayStats.totalSuggestions += lang.total_code_suggestions || 0;
-                                        dayStats.acceptedLines += lang.total_code_lines_accepted || 0;
-                                        dayStats.suggestedLines += lang.total_code_lines_suggested || 0;
-                                    });
-                                }
-                            });
-                        }
-                    });
-                }
-
-                // Calcular métricas diarias
-                dayStats.acceptanceRate = dayStats.totalSuggestions > 0 ?
-                    (dayStats.acceptedSuggestions / dayStats.totalSuggestions * 100).toFixed(2) : 0;
-                dayStats.lineAcceptanceRate = dayStats.suggestedLines > 0 ?
-                    (dayStats.acceptedLines / dayStats.suggestedLines * 100).toFixed(2) : 0;
-                dayStats.estimatedTimeSaved = (dayStats.acceptedLines * productivityStats.summary.averageTimePerLine);
-
-                productivityStats.daily.push(dayStats);
-
-                // Actualizar totales
-                productivityStats.summary.totalAcceptedSuggestions += dayStats.acceptedSuggestions;
-                productivityStats.summary.totalSuggestions += dayStats.totalSuggestions;
-                productivityStats.summary.totalAcceptedLines += dayStats.acceptedLines;
-                productivityStats.summary.totalSuggestedLines += dayStats.suggestedLines;
-                productivityStats.summary.totalTimeSaved += dayStats.estimatedTimeSaved;
-            });
-
-            // Calcular métricas globales
-            productivityStats.summary.acceptanceRate = 
-                productivityStats.summary.totalSuggestions > 0 ?
-                (productivityStats.summary.totalAcceptedSuggestions / productivityStats.summary.totalSuggestions * 100).toFixed(2) : 0;
-            
-            productivityStats.summary.lineAcceptanceRate = 
-                productivityStats.summary.totalSuggestedLines > 0 ?
-                (productivityStats.summary.totalAcceptedLines / productivityStats.summary.totalSuggestedLines * 100).toFixed(2) : 0;
-
-            productivityStats.summary.averageTimeSavedPerDay = 
-                (productivityStats.summary.totalTimeSaved / metricsData.length).toFixed(2);
-
-            productivityStats.summary.productivityGain = 
-                ((productivityStats.summary.totalAcceptedLines * 100) / 
-                (productivityStats.summary.totalAcceptedLines + productivityStats.summary.totalSuggestedLines)).toFixed(2);
-
-            return productivityStats;
         } catch (error) {
-            throw new Error(`Error analizando métricas de productividad: ${error.message}`);
+            throw new Error(`Error analyzing language metrics: ${error.message}`);
         }
     }
 

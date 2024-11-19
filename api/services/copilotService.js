@@ -86,12 +86,10 @@ class CopilotService {
             const rawData = response.data;
             const usersData = metricsTransformService.getUsers(rawData);
             const activityIdeByDay = metricsTransformService.getIdeActivityByDay(rawData);
-            const activityChatByDay = metricsTransformService.getChatActivityByDay(rawData);   
-            const languageAnalysis = metricsTransformService.getTopLanguages(rawData);     
-            const editorsAnalysis = metricsTransformService.getTopEditors(rawData);
+            const activityChatByDay = metricsTransformService.getChatActivityByDay(rawData);               
             const summaryCode = metricsTransformService.getIdeMetricsSummary(rawData);
-            const summaryChat = metricsTransformService.getChatMetricsSummary(rawData);      
-            const productivityAnalysis = metricsTransformService.getProductivityMetrics(rawData); 
+            const summaryChat = metricsTransformService.getChatMetricsSummary(rawData);   
+            const topLanguages = metricsTransformService.getTopLanguages(rawData);   
 
             // Generar múltiples gráficos       
             const chartResults = {
@@ -99,9 +97,7 @@ class CopilotService {
                 activityIdeChart: await chartService.generateIdeActivityChart(activityIdeByDay),
                 activityChatChart: await chartService.generateChatActivityChart(activityChatByDay),
                 activityCharteRate: await chartService.generateActivityChartRate(activityIdeByDay, activityChatByDay),
-                languageCharts: await chartService.generateLanguageCharts(languageAnalysis),
-                editorsCharts: await chartService.generateEditorCharts(editorsAnalysis),
-                productivityCharts: await chartService.generateProductivityCharts(productivityAnalysis),
+                //topLanguagesChart: await chartService.generateTopLanguagesChart(topLanguages),
                 trendsChart: { 
                     trendsCode: await chartService.generateIdeWeeklyTrendsChart(summaryCode),
                     trendsChat: await chartService.generateChatWeeklyTrendsChart(summaryChat)
