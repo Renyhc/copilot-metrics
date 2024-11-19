@@ -70,37 +70,48 @@ class MetricsTransformService {
     }
 
     getAcceptanceByDay(metricsData) {
-        let accepted = 0;
-        let suggestions = 0;
         const transformedData = {
-            labels: metricsData.labels,
+            labels: [],
             accepted: [],
             suggestions: [],
-            average:[]
+            average: []
         };
 
-        metricsData.map((metric, _) => {
-            let accepted = 0;
-            let suggestions = 0;
-            if (metric.copilot_ide_code_completions?.editors) {
-                metric.copilot_ide_code_completions.editors.forEach(editor => {
+        // Asegurar que metricsData es un array y ordenarlo por fecha
+        const sortedData = Array.isArray(metricsData) ? 
+            [...metricsData].sort((a, b) => new Date(a.date) - new Date(b.date)) : 
+            [];
+
+        sortedData.forEach(dayMetric => {
+            let dayAccepted = 0;
+            let daySuggestions = 0;
+
+            if (dayMetric.copilot_ide_code_completions?.editors) {
+                dayMetric.copilot_ide_code_completions.editors.forEach(editor => {
                     if (editor.models) {
                         editor.models.forEach(model => {
                             if (model.languages) {
                                 model.languages.forEach(lang => {
-                                    accepted += lang.total_code_acceptances || 0;
-                                    suggestions += lang.total_code_suggestions || 0;                                    
+                                    dayAccepted += lang.total_code_acceptances || 0;
+                                    daySuggestions += lang.total_code_suggestions || 0;
                                 });
                             }
                         });
                     }
-                    
                 });
             }
-            transformedData.accepted.push(accepted);                                    
-            transformedData.suggestions.push(suggestions);
-            transformedData.average.push(suggestions > 0 ? ((accepted / suggestions) * 100).toFixed(2) : 0);            
+
+            // Agregar datos del día
+            transformedData.labels.push(dayMetric.date);
+            transformedData.accepted.push(dayAccepted);
+            transformedData.suggestions.push(daySuggestions);
+            transformedData.average.push(
+                daySuggestions > 0 ? 
+                ((dayAccepted / daySuggestions) * 100).toFixed(2) : 
+                '0'
+            );
         });
+
         return transformedData;
     }
 
