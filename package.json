@@ -4,8 +4,8 @@
   "description": "GitHub Copilot metrics visualization system",
   "main": "api/app.js",
   "scripts": {
-    "start": "node api/app.js",
-    "dev": "nodemon api/app.js"
+    "start": "set PORT=3001 && node api/app.js",
+    "dev": "set PORT=3001 && nodemon api/app.js"
   },
   "dependencies": {
     "@octokit/core": "^5.0.0",
