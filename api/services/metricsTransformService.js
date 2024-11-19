@@ -366,11 +366,10 @@ class MetricsTransformService {
 
     getTopLanguages(metricsData) {
         try {
-            const last28Days = metricsData.slice(-28);
             const languageStats = new Map();
 
             // Recopilar estadísticas por lenguaje
-            last28Days.forEach(dayMetric => {
+            metricsData.forEach(dayMetric => {
                 if (dayMetric.copilot_ide_code_completions?.editors) {
                     dayMetric.copilot_ide_code_completions.editors.forEach(editor => {
                         if (editor.models) {

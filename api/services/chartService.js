@@ -1,5 +1,4 @@
 const { Chart } = require('chart.js/auto');
-const metricsTransformService = require('./metricsTransformService');
 const { createCanvas } = require('canvas');
 const fs = require('fs');
 const path = require('path');
@@ -195,25 +194,19 @@ class ChartService {
             };
 
             // Generar ambos gráficos
-            const promptsChartResult = await this._generateChart('pie', topPromptsChart, {
+            await this._generateChart('pie', topPromptsChart, {
                 title: 'Top 5 Lenguajes por Prompts Aceptados',
                 height: 300
             });
 
-            const rateChartResult = await this._generateChart('pie', topRateChart, {
+            await this._generateChart('pie', topRateChart, {
                 title: 'Top 5 Lenguajes por Tasa de Aceptación',
                 height: 300
             });
 
             return {
-                topPrompts: {
-                    chart: promptsChartResult,
-                    data: topPromptsChart
-                },
-                topRate: {
-                    chart: rateChartResult,
-                    data: topRateChart
-                },
+                topPrompts: topPromptsChart,
+                topRate: topRateChart,
                 tableData: languageData.allLanguages.map(lang => ({
                     language: lang.name,
                     acceptedPrompts: lang.acceptedPrompts,
