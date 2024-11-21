@@ -1,5 +1,5 @@
 const { Chart } = require('chart.js/auto');
-const { createCanvas } = require('canvas');
+const { JSDOM } = require('jsdom');
 const fs = require('fs');
 const path = require('path');
 
