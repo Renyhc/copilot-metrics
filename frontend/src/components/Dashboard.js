@@ -13,34 +13,34 @@ const Dashboard = ({ metrics }) => {
                 <Grid item xs={12}>
                     <Paper sx={{ p: 2 }}>
                         <Typography variant="h6" gutterBottom>
-                            Resumen General
+                            Github Copilot Metrics - [primary-idtech]
                         </Typography>
                         <Grid container spacing={2}>
                             <Grid item xs={12} sm={6} md={3}>
                                 <MetricsCard
                                     title="Tasa de Aceptación"
-                                    value={`${metrics.summary?.overall?.acceptanceRateAverage || 0}%`}
+                                    value={`${metrics.summary?.summaryCode.overall?.acceptanceRateAverage || 0}%`}
                                     subtitle="Promedio general"
                                 />
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
                                 <MetricsCard
                                     title="Líneas Aceptadas"
-                                    value={metrics.summary?.overall?.totalLinesAccepted || 0}
+                                    value={metrics.summary?.summaryCode.overall?.totalLinesAccepted || 0}
                                     subtitle="Total"
                                 />
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
                                 <MetricsCard
                                     title="Usuarios Activos"
-                                    value={metrics.summary?.overall?.activeUsers || 0}
+                                    value={metrics.summary?.summaryCode.overall?.activeUsers || 0}
                                     subtitle="Promedio"
                                 />
                             </Grid>
                             <Grid item xs={12} sm={6} md={3}>
                                 <MetricsCard
                                     title="Tiempo Ahorrado"
-                                    value={metrics.productivityAnalysis?.charts?.summary?.totalTimeSaved || '0 horas'}
+                                    value={metrics.charts.productivityCharts?.summary?.totalTimeSaved || '0 horas'}
                                     subtitle="Total estimado"
                                 />
                             </Grid>
@@ -52,19 +52,19 @@ const Dashboard = ({ metrics }) => {
                 <Grid item xs={12} md={6}>
                     <ChartContainer
                         title="Tendencia de Aceptación"
-                        chart={metrics.productivityAnalysis?.charts?.acceptanceTrend}
+                        chart={metrics.charts.activityCharteRate}
                     />
                 </Grid>
                 <Grid item xs={12} md={6}>
                     <ChartContainer
                         title="Tiempo Ahorrado"
-                        chart={metrics.productivityAnalysis?.charts?.timeSavings}
+                        chart={metrics.charts.productivityCharts.acceptanceTrend}
                     />
                 </Grid>
                 <Grid item xs={12}>
                     <ChartContainer
                         title="Productividad Acumulada"
-                        chart={metrics.productivityAnalysis?.charts?.cumulativeProductivity}
+                        chart={metrics.charts.productivityCharts.cumulativeProductivity}
                     />
                 </Grid>
             </Grid>

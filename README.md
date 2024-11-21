@@ -13,12 +13,10 @@ This project is developed and maintained by:
 
 ## Setup and Installation
 
+### Using Docker (Recommended)
+
 1. Clone the repository
-2. Install dependencies:
-```bash
-npm install
-```
-3. Create a `.env` file in the root directory using `.env.example` as a template:
+2. Create a `.env` file in the root directory using `.env.example` as a template:
 ```bash
 cp .env.example .env
 ```
@@ -29,6 +27,28 @@ Then edit `.env` with your values:
    - TEAM_SLUG: Your team slug
    - API_VERSION: GitHub API version (defaults to 2022-11-28)
 
+3. Build and start the containers:
+```bash
+docker-compose up --build
+```
+
+The services will be available at:
+- Frontend: http://localhost:8080
+- Backend API: http://localhost:3000
+
+To stop the services:
+```bash
+docker-compose down
+```
+
+### Manual Setup
+
+1. Clone the repository
+2. Install dependencies:
+```bash
+npm install
+```
+3. Configure the environment as described above
 4. Start the server:
 ```bash
 npm start

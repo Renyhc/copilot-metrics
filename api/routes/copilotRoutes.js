@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const copilotService = require('../services/copilotService');
 
-router.get('/metrics/refresh', async (req, res) => {
+router.get('/metrics', async (req, res) => {
     try {
         const metrics = await copilotService.getOrgMetrics();        
         res.json(metrics);
@@ -53,7 +53,7 @@ router.get('/org/team/metrics', async (req, res) => {
 module.exports = router;
 /**
  * @swagger
- * /metrics/refresh:
+ * /metrics:
  *   get:
  *     summary: Obtener y exportar métricas actualizadas de GitHub Copilot
  *     tags: [Metrics]
