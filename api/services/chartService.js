@@ -477,24 +477,59 @@ class ChartService {
                 }
             });
 
-            // Asegurar que existe el directorio de exportación
+            // Generate unique filename
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const fileName = `copilot-metrics-${timestamp}.html`;
             const exportDir = path.join(__dirname, '../../exports');
+
+            // Ensure export directory exists
             if (!fs.existsSync(exportDir)) {
                 fs.mkdirSync(exportDir, { recursive: true });
             }
 
-            // Generar nombre de archivo único
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const fileName = `copilot-metrics-${timestamp}.png`;
-            const filePath = path.join(exportDir, fileName);
+            // Create HTML file with embedded chart
+            const html = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <title>Copilot Metrics Chart</title>
+                    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                </head>
+                <body>
+                    <canvas id="chart" width="800" height="${options.height || 400}"></canvas>
+                    <script>
+                        new Chart(document.getElementById('chart'), {
+                            type: '${type}',
+                            data: ${JSON.stringify(data)},
+                            options: ${JSON.stringify({
+                                responsive: true,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: options.title || 'Copilot Metrics'
+                                    }
+                                },
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        title: {
+                                            display: !!options.yAxisLabel,
+                                            text: options.yAxisLabel || ''
+                                        }
+                                    }
+                                }
+                            })}
+                        });
+                    </script>
+                </body>
+                </html>
+            `;
 
-            // Exportar el gráfico como PNG
-            const buffer = canvas.toBuffer('image/png');
-            fs.writeFileSync(filePath, buffer);
+            fs.writeFileSync(path.join(exportDir, fileName), html);
 
             return {
                 success: true,
-                filePath,
+                filePath: exportDir,
                 fileName
             };
         } catch (error) {
