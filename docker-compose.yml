@@ -1,7 +1,6 @@
 services:
   # Servicio del Backend (API)
-  copilot-metrics-api:
-    image: copilot-metrics-api:1.0.0
+  api:
     build:
       context: ./api
       dockerfile: Dockerfile
@@ -10,17 +9,21 @@ services:
     volumes:
       - ./api:/app/api
       - ./exports:/app/exports
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   # Servicio del Frontend
-  copilot-metrics-frontend:
-    image: copilot-metrics-frontend:1.0.0
+  frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8080:8080"
     depends_on:
-      copilot-metrics-api:
+      api:
         condition: service_healthy
     environment:
       - REACT_APP_API_URL=http://localhost:3000
