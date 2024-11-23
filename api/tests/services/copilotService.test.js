@@ -1,8 +1,8 @@
 const { OctokitMock } = require('../../mocks/octokitMock');
 const CopilotService = require('../../services/copilotService');
-const metricsTransformService = require('../../services/metricsTransformService');
-const chartService = require('../../services/chartService');
-const exportService = require('../../services/exportService');
+const MetricsTransformService = require('../../services/metricsTransformService');
+const ChartService = require('../../services/chartService');
+const ExportService = require('../../services/exportService');
 
 const { mockTransformedData } = require('../../mocks/mockTransformedData');
 const { mockChartResult } = require('../../mocks/mockChartResult');
@@ -19,9 +19,14 @@ describe('CopilotService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    // Crear instancias de los servicios
+    const metricsTransformService = new MetricsTransformService();
+    const chartService = new ChartService();
+    const exportService = new ExportService();
+
     // Mockear métodos de otros servicios con datos mockeados
     jest.spyOn(metricsTransformService, 'getUsers').mockReturnValue(mockTransformedData);
-    jest.spyOn(chartService, 'generateUsersChart').mockResolvedValue(mockChartResult);
+    jest.spyOn(chartService, 'generateUsersChart').mockResolvedValue(mockChartResult.usersChart);
     jest.spyOn(exportService, 'exportMetricsToJson').mockResolvedValue(mockExportResult);
   });
 
@@ -48,9 +53,13 @@ describe('CopilotService', () => {
     }, 'organization');
 
     // Verificar las propiedades del resultado
-    expect(result).toHaveProperty('raw', mockTransformedData);
-    expect(result).toHaveProperty('charts', mockChartResult);
-    expect(result).toHaveProperty('export', mockExportResult);
+    expect(result).toEqual({
+      raw: mockTransformedData,
+      charts: {
+        usersChart: mockChartResult.usersChart
+      },
+      export: mockExportResult
+    });
   });
 
   it('debe manejar errores al obtener métricas organizacionales', async () => {
