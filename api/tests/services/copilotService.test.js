@@ -9,7 +9,14 @@ const { mockExportResult } = require('../../mocks/mockExportResult');
 
 // Mock the services
 jest.mock('../../services/metricsTransformService', () => ({
-  getUsers: jest.fn(),
+    getUsers: jest.fn(),
+    getIdeActivityByDay: jest.fn(),
+    getChatActivityByDay: jest.fn(),
+    getTopLanguages: jest.fn(),
+    getTopEditors: jest.fn(),
+    getIdeMetricsSummary: jest.fn(),
+    getChatMetricsSummary: jest.fn(),
+    getProductivityMetrics: jest.fn()
 }));
 
 jest.mock('../../services/chartService', () => ({
