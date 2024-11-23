@@ -4,6 +4,30 @@ const fs = require('fs');
 const path = require('path');
 
 class ChartService {
+
+    constructor() {
+        this._exported = false; // Variable interna para controlar la exportación
+    }
+
+    /**
+     * Obtiene el valor de la variable `exported`.
+     * @returns {boolean} El estado actual de `exported`.
+     */
+    getExported() {
+        return this._exported;
+    }
+
+    /**
+     * Establece el valor de la variable `exported`.
+     * @param {boolean} value - Nuevo valor para `exported`.
+     */
+    setExported(value) {
+        if (typeof value !== 'boolean') {
+            throw new TypeError('El valor de "exported" debe ser booleano.');
+        }
+        this._exported = value;
+    }
+
     async generateUsersChart(metricsData) {
         try {
             const chartData = {
@@ -441,9 +465,10 @@ class ChartService {
     }
 
     async _generateChart(type, chartData, options = {}) {
-        // Crear canvas
-        const width = options.width || 800;
-        const height = options.height || 400;
+        try {
+            // Crear canvas
+            const width = options.width || 800;
+            const height = options.height || 400;
             const canvas = createCanvas(width, height);
             const ctx = canvas.getContext('2d');
 
@@ -477,29 +502,39 @@ class ChartService {
                 }
             });
 
-            // Asegurar que existe el directorio de exportación
-            const exportDir = path.join(__dirname, '../../exports');
-            if (!fs.existsSync(exportDir)) {
-                fs.mkdirSync(exportDir, { recursive: true });
+            // Verificar si se debe exportar el gráfico
+            if (this.getExported()) {
+                // Asegurar que existe el directorio de exportación
+                const exportDir = path.join(__dirname, '../../exports');
+                if (!fs.existsSync(exportDir)) {
+                    fs.mkdirSync(exportDir, { recursive: true });
+                }
+
+                // Generar nombre de archivo único
+                const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+                const fileName = `copilot-metrics-${timestamp}.png`;
+                const filePath = path.join(exportDir, fileName);
+
+                // Exportar el gráfico como PNG
+                const buffer = canvas.toBuffer('image/png');
+                fs.writeFileSync(filePath, buffer);
+
+                return {
+                    success: true,
+                    filePath,
+                    fileName
+                };
+            } else {
+                // Si no se exporta, simplemente devolver éxito sin guardar el archivo
+                return {
+                    success: true,
+                    message: 'Exportación deshabilitada. El gráfico no se ha guardado.'
+                };
             }
-
-            // Generar nombre de archivo único
-            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-            const fileName = `copilot-metrics-${timestamp}.png`;
-            const filePath = path.join(exportDir, fileName);
-
-            // Exportar el gráfico como PNG
-            const buffer = canvas.toBuffer('image/png');
-            fs.writeFileSync(filePath, buffer);
-
-            return {
-                success: true,
-                filePath,
-                fileName
-            };
         } catch (error) {
             throw new Error(`Error generando gráfico: ${error.message}`);
         }
     }
+}
 
 module.exports = new ChartService();

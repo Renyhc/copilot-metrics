@@ -76,7 +76,7 @@ class CopilotService {
         }
     }
 
-    async getOrgMetrics() {
+    async getOrgMetrics(exported = false) {
         try {
             const response = await octokit.request('GET /orgs/{org}/copilot/metrics', {
                 org: config.ORG,
@@ -92,8 +92,18 @@ class CopilotService {
             const summaryCode = metricsTransformService.getIdeMetricsSummary(rawData);
             const summaryChat = metricsTransformService.getChatMetricsSummary(rawData);      
             const productivityAnalysis = metricsTransformService.getProductivityMetrics(rawData); 
+            var jsonExport = {};
 
-            // Generar múltiples gráficos       
+            // Resumen de métricas
+            const summary = {
+                summaryCode: summaryCode,
+                summaryChat: summaryChat
+            }
+
+            //Habilitar la exportación
+            chartService.setExported(exported);
+            
+            // Generar múltiples gráficos        
             const chartResults = {
                 usersChart: await chartService.generateUsersChart(usersData),
                 activityIdeChart: await chartService.generateIdeActivityChart(activityIdeByDay),
@@ -102,24 +112,21 @@ class CopilotService {
                 languageCharts: await chartService.generateLanguageCharts(languageAnalysis),
                 editorsCharts: await chartService.generateEditorCharts(editorsAnalysis),
                 productivityCharts: await chartService.generateProductivityCharts(productivityAnalysis),
-                trendsChart: { 
+                trendsChart: {
                     trendsCode: await chartService.generateIdeWeeklyTrendsChart(summaryCode),
                     trendsChat: await chartService.generateChatWeeklyTrendsChart(summaryChat)
                 }
             };
-            // Resumen de métricas
-            const summary = {
-                summaryCode: summaryCode,
-                summaryChat: summaryChat
-            }
-            
-            // Exportar datos a JSON
-            const jsonExport = await exportService.exportMetricsToJson({
-                raw: rawData,
-                charts: chartResults,
-                summary: summary
-            }, 'organization');
-            
+
+            if (exported) {
+                // Exportar datos a JSON
+                jsonExport = await exportService.exportMetricsToJson({
+                    raw: rawData,
+                    charts: chartResults,
+                    summary: summary
+                }, 'organization');
+            };
+                        
             return {
                 raw: rawData,
                 charts: chartResults,
