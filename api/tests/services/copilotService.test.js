@@ -19,15 +19,10 @@ describe('CopilotService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Crear instancias de los servicios
-    const metricsTransformService = new MetricsTransformService();
-    const chartService = new ChartService();
-    const exportService = new ExportService();
-
-    // Mockear métodos de otros servicios con datos mockeados
-    jest.spyOn(metricsTransformService, 'getUsers').mockReturnValue(mockTransformedData);
-    jest.spyOn(chartService, 'generateUsersChart').mockResolvedValue(mockChartResult.usersChart);
-    jest.spyOn(exportService, 'exportMetricsToJson').mockResolvedValue(mockExportResult);
+    // Mockear los servicios
+    jest.spyOn(MetricsTransformService.prototype, 'getUsers').mockReturnValue(mockTransformedData);
+    jest.spyOn(ChartService.prototype, 'generateUsersChart').mockResolvedValue(mockChartResult.usersChart);
+    jest.spyOn(ExportService.prototype, 'exportMetricsToJson').mockResolvedValue(mockExportResult);
   });
 
   afterEach(() => {
@@ -45,9 +40,9 @@ describe('CopilotService', () => {
     expect(requestMock).toHaveBeenCalledWith('GET /orgs/{org}/copilot/metrics', expect.any(Object));
 
     // Verificar que otros métodos hayan sido llamados
-    expect(metricsTransformService.getUsers).toHaveBeenCalledWith(expect.any(Object));
-    expect(chartService.generateUsersChart).toHaveBeenCalledWith(mockTransformedData);
-    expect(exportService.exportMetricsToJson).toHaveBeenCalledWith({
+    expect(MetricsTransformService.prototype.getUsers).toHaveBeenCalledWith(expect.any(Object));
+    expect(ChartService.prototype.generateUsersChart).toHaveBeenCalledWith(mockTransformedData);
+    expect(ExportService.prototype.exportMetricsToJson).toHaveBeenCalledWith({
       raw: mockTransformedData,
       charts: mockChartResult
     }, 'organization');
