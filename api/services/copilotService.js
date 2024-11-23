@@ -15,6 +15,7 @@ const headers = {
 };
 
 class CopilotService {
+    
     async getEnterpriseMetrics() {
         try {
             const response = await octokit.request('GET /enterprises/{enterprise}/copilot/metrics', {
@@ -102,7 +103,7 @@ class CopilotService {
 
             //Habilitar la exportación
             chartService.setExported(exported);
-            
+
             // Generar múltiples gráficos        
             const chartResults = {
                 usersChart: await chartService.generateUsersChart(usersData),

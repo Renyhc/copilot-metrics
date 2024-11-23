@@ -48,7 +48,7 @@ class ChartService {
                 }]
             };
             // Generar gráfico
-            await this._generateChart('bar', chartData, {
+            chartData.chart = await this._generateChart('bar', chartData, {
                 title: 'Distribución de Usuarios',
                 yAxisLabel: 'Usuarios'
             });
@@ -76,7 +76,7 @@ class ChartService {
                 }]
             };
             // Generar gráfico
-            await this._generateChart('line', chartData, {
+            chartData.chart = await this._generateChart('line', chartData, {
                 title: 'Tasa de Aceptación de Sugerencias en el IDE',
                 yAxisLabel: 'Cantidad'
             });
@@ -103,7 +103,7 @@ class ChartService {
                     fill: false
                 }]
             };
-            await this._generateChart('line', chartData, {
+            chartData.chart = await this._generateChart('line', chartData, {
                 title: 'Tasa de Aceptación de Sugerencias en el Copilot Chat',
                 yAxisLabel: 'Cantidad'
             });
@@ -131,7 +131,7 @@ class ChartService {
                 ]
             };
             // Generar gráfico
-            await this._generateChart('line', chartData, {
+            chartData.chart = await this._generateChart('line', chartData, {
                 title: 'Tasa de aceptación de sugerencias en IDE / Chat',
                 yAxisLabel: 'Porcentaje (%)'
             });
@@ -173,7 +173,7 @@ class ChartService {
                 ]
             };
             // Generar gráfico
-            await this._generateChart('bar', chartData, {
+            chartData.chart = await this._generateChart('bar', chartData, {
                 title: 'Tendencias Semanales',
                 yAxisLabel: 'Porciento (%)'
             });
@@ -234,17 +234,17 @@ class ChartService {
             };
 
             // Generar los tres gráficos
-            await this._generateChart('pie', acceptedPromptsChart, {
+            acceptedPromptsChart.chart = await this._generateChart('pie', acceptedPromptsChart, {
                 title: 'IDEs por Prompts Aceptados',
                 height: 300
             });
 
-            await this._generateChart('pie', acceptanceRateChart, {
+            acceptanceRateChart.chart = await this._generateChart('pie', acceptanceRateChart, {
                 title: 'IDEs por Tasa de Aceptación',
                 height: 300
             });
 
-            await this._generateChart('pie', engagedUsersChart, {
+            engagedUsersChart.chart = await this._generateChart('pie', engagedUsersChart, {
                 title: 'IDEs por Usuarios Comprometidos',
                 height: 300
             });
@@ -304,12 +304,12 @@ class ChartService {
             };
 
             // Generar ambos gráficos
-            await this._generateChart('pie', topPromptsChart, {
+            topPromptsChart.chart = await this._generateChart('pie', topPromptsChart, {
                 title: 'Top 5 Lenguajes por Prompts Aceptados',
                 height: 300
             });
 
-            await this._generateChart('pie', topRateChart, {
+            topRateChart.chart = await this._generateChart('pie', topRateChart, {
                 title: 'Top 5 Lenguajes por Tasa de Aceptación',
                 height: 300
             });
@@ -372,19 +372,19 @@ class ChartService {
             };
 
             // Generar los gráficos
-            const acceptanceTrendResult = await this._generateChart('line', acceptanceTrendChart, {
+            acceptanceTrendChart.chart = await this._generateChart('line', acceptanceTrendChart, {
                 title: 'Tendencia de Aceptación de Código',
                 height: 300,
                 yAxisLabel: 'Porcentaje (%)'
             });
 
-            const timeSavingsResult = await this._generateChart('line', timeSavingsChart, {
+            timeSavingsChart.chart = await this._generateChart('line', timeSavingsChart, {
                 title: 'Tiempo Ahorrado por Día',
                 height: 300,
                 yAxisLabel: 'Minutos'
             });
 
-            const cumulativeResult = await this._generateChart('line', cumulativeProductivityChart, {
+            cumulativeProductivityChart.chart= await this._generateChart('line', cumulativeProductivityChart, {
                 title: 'Productividad Acumulada',
                 height: 300,
                 yAxisLabel: 'Líneas de Código'
@@ -454,7 +454,7 @@ class ChartService {
                 ]
             };
             // Generar gráfico
-            await this._generateChart('bar', chartData, {
+            chartData.chart = await this._generateChart('bar', chartData, {
                 title: 'Tendencias Semanales',
                 yAxisLabel: 'Porciento (%)'
             });
