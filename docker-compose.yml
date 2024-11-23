@@ -10,6 +10,11 @@ services:
     volumes:
       - ./api:/app/api
       - ./exports:/app/exports
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
 
   # Servicio del Frontend
   copilot-metrics-frontend:
@@ -18,7 +23,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - "8000:8000"
+      - "8080:8080"
     depends_on:
       copilot-metrics-api:
         condition: service_healthy

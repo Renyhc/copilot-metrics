@@ -28,7 +28,7 @@ RUN npm install --build-from-source=canvas \
 COPY . .
 
 # Exponer el puerto
-EXPOSE 8000
+EXPOSE 8080
 
 # Comando para ejecutar la aplicación
 CMD ["npm", "start"]
