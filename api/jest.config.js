@@ -13,3 +13,14 @@ module.exports = {
   moduleFileExtensions: ['js', 'json'],
   testMatch: ['**/tests/**/*.test.js']
 };
+module.exports = {
+  rootDir: '.',
+  moduleDirectories: ['node_modules'],
+  testEnvironment: 'node',
+  verbose: true,
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/$1'
+  },
+  // Ignorar package.json duplicados
+  modulePathIgnorePatterns: ['<rootDir>/package.json']
+};

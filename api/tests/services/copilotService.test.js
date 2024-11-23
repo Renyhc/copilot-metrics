@@ -1,4 +1,3 @@
-const { OctokitMock } = require('../../mocks/octokitMock');
 const CopilotService = require('../../services/copilotService');
 const MetricsTransformService = require('../../services/metricsTransformService');
 const ChartService = require('../../services/chartService');
@@ -10,6 +9,7 @@ const { mockExportResult } = require('../../mocks/mockExportResult');
 
 // Mockear @octokit/core para que utilice OctokitMock
 jest.mock('@octokit/core', () => {
+  const { OctokitMock } = require('../../mocks/octokitMock');
   return {
     Octokit: jest.fn().mockImplementation(() => new OctokitMock()),
   };
