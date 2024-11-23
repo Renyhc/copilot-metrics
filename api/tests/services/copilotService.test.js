@@ -1,13 +1,27 @@
 const CopilotService = require('../../services/copilotService');
-const MetricsTransformService = require('../../services/metricsTransformService');
-const ChartService = require('../../services/chartService');
-const ExportService = require('../../services/exportService');
+const metricsTransformService = require('../../services/metricsTransformService');
+const chartService = require('../../services/chartService');
+const exportService = require('../../services/exportService');
 
 const { mockTransformedData } = require('../../mocks/mockTransformedData');
 const { mockChartResult } = require('../../mocks/mockChartResult');
 const { mockExportResult } = require('../../mocks/mockExportResult');
 
-// Mockear @octokit/core para que utilice OctokitMock
+// Mock the services
+jest.mock('../../services/metricsTransformService', () => ({
+  getUsers: jest.fn(),
+}));
+
+jest.mock('../../services/chartService', () => ({
+  generateUsersChart: jest.fn(),
+  setExported: jest.fn(),
+}));
+
+jest.mock('../../services/exportService', () => ({
+  exportMetricsToJson: jest.fn(),
+}));
+
+// Mock @octokit/core
 jest.mock('@octokit/core', () => {
   const { OctokitMock } = require('../../mocks/octokitMock');
   return {
@@ -18,11 +32,11 @@ jest.mock('@octokit/core', () => {
 describe('CopilotService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-
-    // Mockear los servicios
-    jest.spyOn(MetricsTransformService.prototype, 'getUsers').mockReturnValue(mockTransformedData);
-    jest.spyOn(ChartService.prototype, 'generateUsersChart').mockResolvedValue(mockChartResult.usersChart);
-    jest.spyOn(ExportService.prototype, 'exportMetricsToJson').mockResolvedValue(mockExportResult);
+    
+    // Setup mock implementations
+    metricsTransformService.getUsers.mockReturnValue(mockTransformedData);
+    chartService.generateUsersChart.mockResolvedValue(mockChartResult.usersChart);
+    exportService.exportMetricsToJson.mockResolvedValue(mockExportResult);
   });
 
   afterEach(() => {
@@ -39,10 +53,10 @@ describe('CopilotService', () => {
     // Verificar que request haya sido llamado correctamente
     expect(requestMock).toHaveBeenCalledWith('GET /orgs/{org}/copilot/metrics', expect.any(Object));
 
-    // Verificar que otros métodos hayan sido llamados
-    expect(MetricsTransformService.prototype.getUsers).toHaveBeenCalledWith(expect.any(Object));
-    expect(ChartService.prototype.generateUsersChart).toHaveBeenCalledWith(mockTransformedData);
-    expect(ExportService.prototype.exportMetricsToJson).toHaveBeenCalledWith({
+    // Verify service method calls
+    expect(metricsTransformService.getUsers).toHaveBeenCalledWith(expect.any(Object));
+    expect(chartService.generateUsersChart).toHaveBeenCalledWith(mockTransformedData);
+    expect(exportService.exportMetricsToJson).toHaveBeenCalledWith({
       raw: mockTransformedData,
       charts: mockChartResult
     }, 'organization');
