@@ -215,6 +215,39 @@ The API uses standard HTTP response codes:
 - 404: Not Found
 - 500: Internal Server Error
 
+## Testing
+
+### Running Tests
+
+To ensure the integrity and reliability of the application, follow the steps below to run the test suite.
+
+#### Using npm
+
+1. **Install Dependencies**  
+   Ensure all dependencies are installed:
+    ```bash
+    npm install
+    ```
+
+2. **Run Tests**  
+   Execute the test suite with the following command:
+    ```bash
+    npm test
+    ```
+
+#### Using Docker
+
+1. **Start Containers**  
+   Make sure the necessary containers are running:
+    ```bash
+    docker-compose up --build
+    ```
+
+2. **Execute Tests Inside Container**  
+   Run the tests within the backend container:
+    ```bash
+    docker-compose exec backend npm test
+    ```
 ## Authentication
 
 All requests require proper GitHub authentication headers.
