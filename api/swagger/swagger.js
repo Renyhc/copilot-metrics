@@ -1,5 +1,6 @@
 const swaggerJsdoc = require('swagger-jsdoc');
 
+const path = require('path');
 const options = {
   definition: {
     openapi: '3.0.0',
@@ -11,7 +12,7 @@ const options = {
     servers: [
       {
         url: 'http://localhost:3000',
-        description: 'Servidor de Métricas de Copilot',
+        description: 'Development server',
       },
     ],
     components: {
@@ -27,7 +28,7 @@ const options = {
       BearerAuth: [],
     }],
   },
-  apis: ['./routes/*.js'], // Rutas donde están los comentarios de Swagger
+  apis: [path.join(__dirname, '../routes/*.js')], // Rutas donde están los comentarios de Swagger
 };
 
 const specs = swaggerJsdoc(options);

@@ -2,10 +2,10 @@
   "name": "copilot-metrics-api",
   "version": "1.0.0",
   "description": "GitHub Copilot metrics visualization system",
-  "main": "api/app.js",
+  "main": "app.js",
   "scripts": {
-    "start": "node api/app.js",
-    "dev": "nodemon api/app.js",
+    "start": "node app.js",
+    "dev": "nodemon app.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage"
